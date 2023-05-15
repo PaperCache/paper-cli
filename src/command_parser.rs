@@ -4,6 +4,7 @@ use regex::Regex;
 use fasthash::murmur3;
 use crate::command_error::{CommandError, ErrorKind};
 use crate::command::Command;
+use crate::policy::Policy;
 
 pub struct CommandParser {
 	prompt: String,
@@ -86,7 +87,7 @@ fn parse_command(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		"set" => parse_set(tokens),
 		"del" => parse_del(tokens),
 		"resize" => parse_resize(tokens),
-		//"policy" => {},
+		"policy" => parse_policy(tokens),
 
 		"q" | "quit" => Err(CommandError::new(
 			ErrorKind::Quit,
@@ -125,16 +126,30 @@ fn parse_get(tokens: &Vec<String>) -> Result<Command, CommandError> {
 }
 
 fn parse_set(tokens: &Vec<String>) -> Result<Command, CommandError> {
-	if tokens.len() != 3 {
+	if tokens.len() < 3 || tokens.len() > 4 {
 		return Err(CommandError::new(
 			ErrorKind::InvalidArguments,
 			"Invalid arguments for <SET> command."
 		));
 	}
 
+	let ttl = if tokens.len() == 4 {
+		tokens[3].parse::<u32>()
+	} else {
+		Ok(0)
+	};
+
+	if let Err(_) = ttl {
+		return Err(CommandError::new(
+			ErrorKind::InvalidTtl,
+			"Invalid TTL."
+		));
+	}
+
 	Ok(Command::Set(
 		hash(&tokens[1]),
-		tokens[2].as_bytes().to_vec()
+		tokens[2].as_bytes().to_vec(),
+		ttl.unwrap()
 	))
 }
 
@@ -167,6 +182,19 @@ fn parse_resize(tokens: &Vec<String>) -> Result<Command, CommandError> {
 			"Invalid cache size."
 		))
 	}
+}
+
+fn parse_policy(tokens: &Vec<String>) -> Result<Command, CommandError> {
+	if tokens.len() != 2 {
+		return Err(CommandError::new(
+			ErrorKind::InvalidArguments,
+			"Invalid arguments for <POLICY> command."
+		));
+	}
+
+	let policy = Policy::new(&tokens[1])?;
+
+	Ok(Command::Policy(policy))
 }
 
 fn hash(value: &String) -> u64 {

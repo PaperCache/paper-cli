@@ -1,6 +1,7 @@
 mod command_error;
 mod command_parser;
 mod command;
+mod policy;
 
 use clap::Parser;
 use crate::command_parser::CommandParser;
@@ -13,7 +14,7 @@ struct Args {
 	#[arg(short, long, default_value = "127.0.0.1")]
 	host: String,
 
-	#[arg(short, long, default_value_t = 0)]
+	#[arg(short, long, default_value_t = 3145)]
 	port: u32,
 }
 
@@ -31,19 +32,23 @@ fn main() {
 					},
 
 					Command::Get(key) => {
-						println!("get command with key {}", key);
+						println!("get: key {}", key);
 					},
 
-					Command::Set(key, value) => {
-						println!("set command with key {} and value size {}", key, value.len());
+					Command::Set(key, value, ttl) => {
+						println!("set: key {}, value size {}, ttl {}", key, value.len(), ttl);
 					},
 
 					Command::Del(key) => {
-						println!("del command with key {}", key);
+						println!("del: key {}", key);
 					},
 
 					Command::Resize(size) => {
-						println!("resizing cache to {}", size);
+						println!("resize: {}", size);
+					},
+
+					Command::Policy(policy) => {
+						println!("policy: {}", policy);
 					},
 				}
 			},

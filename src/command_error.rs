@@ -7,6 +7,8 @@ pub enum ErrorKind {
 	InvalidCommand,
 	InvalidArguments,
 	InvalidCacheSize,
+	InvalidTtl,
+	InvalidPolicy,
 
 	Quit,
 }
