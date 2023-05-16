@@ -2,11 +2,13 @@ mod command_error;
 mod command_parser;
 mod command;
 mod policy;
+mod tcp_client;
 
 use clap::Parser;
 use crate::command_parser::CommandParser;
 use crate::command::Command;
 use crate::command_error::ErrorKind;
+use crate::tcp_client::TcpClient;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -18,15 +20,36 @@ struct Args {
 	port: u32,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
 	let args = Args::parse();
+
+	let mut client = match TcpClient::new(&args.host, &args.port).await {
+		Ok(client) => {
+			println!("Connected");
+			client
+		},
+
+		Err(_) => {
+			println!("Could not connect to server.");
+			return;
+		},
+	};
 
 	let mut parser = CommandParser::new(&args.host, &args.port);
 
 	while parser.reading() {
 		match parser.read() {
 			Ok(command) => {
-				match command {
+				match client.send_command(&command).await {
+					Ok(response) => {
+					},
+
+					Err(_) => {
+					},
+				}
+
+				/*match command {
 					Command::Ping => {
 						println!("ping command");
 					},
@@ -50,7 +73,7 @@ fn main() {
 					Command::Policy(policy) => {
 						println!("policy: {}", policy);
 					},
-				}
+				}*/
 			},
 
 			Err(err) => {

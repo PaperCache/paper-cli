@@ -10,3 +10,16 @@ pub enum Command {
 	Resize(u64),
 	Policy(Policy),
 }
+
+impl Command {
+	pub fn serialize(&self) -> u8 {
+		match self {
+			Command::Ping => 			0,
+			Command::Get(_) => 			1,
+			Command::Set(_, _, _) => 	2,
+			Command::Del(_) =>			3,
+			Command::Resize(_) =>		4,
+			Command::Policy(_) =>		5,
+		}
+	}
+}
