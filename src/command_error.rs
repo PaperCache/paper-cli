@@ -5,11 +5,14 @@ pub use paper_core::error::PaperError;
 #[derive(PartialEq, Debug)]
 pub enum ErrorKind {
 	EmptyCommand,
+
 	InvalidCommand,
 	InvalidArguments,
 	InvalidCacheSize,
 	InvalidTtl,
 	InvalidPolicy,
+
+	InvalidStream,
 
 	Quit,
 }

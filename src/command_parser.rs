@@ -1,7 +1,6 @@
 use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
 use regex::Regex;
-use fasthash::murmur3;
 use crate::command_error::{CommandError, ErrorKind};
 use crate::command::Command;
 use crate::policy::Policy;
@@ -120,9 +119,7 @@ fn parse_get(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		));
 	}
 
-	Ok(Command::Get(
-		hash(&tokens[1])
-	))
+	Ok(Command::Get(tokens[1].clone()))
 }
 
 fn parse_set(tokens: &Vec<String>) -> Result<Command, CommandError> {
@@ -147,8 +144,8 @@ fn parse_set(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	}
 
 	Ok(Command::Set(
-		hash(&tokens[1]),
-		tokens[2].as_bytes().to_vec(),
+		tokens[1].clone(),
+		tokens[2].clone(),
 		ttl.unwrap()
 	))
 }
@@ -161,9 +158,7 @@ fn parse_del(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		));
 	}
 
-	Ok(Command::Del(
-		hash(&tokens[1])
-	))
+	Ok(Command::Del(tokens[1].clone()))
 }
 
 fn parse_resize(tokens: &Vec<String>) -> Result<Command, CommandError> {
@@ -195,8 +190,4 @@ fn parse_policy(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	let policy = Policy::new(&tokens[1])?;
 
 	Ok(Command::Policy(policy))
-}
-
-fn hash(value: &String) -> u64 {
-	murmur3::hash128(value.as_bytes()) as u64
 }

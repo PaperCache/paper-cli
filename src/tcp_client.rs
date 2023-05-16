@@ -23,28 +23,7 @@ impl TcpClient {
 	}
 
 	pub async fn send_command(&mut self, command: &Command) -> Result<Sheet, SheetError> {
-		let buf = [command.serialize(); 1];
-
-		loop {
-			if let Err(_) = self.stream.writable().await {
-				todo!();
-			}
-
-			match self.stream.try_write(&buf) {
-				Ok(_) => {
-					break;
-				},
-
-				Err(ref err) if err.kind() == io::ErrorKind::WouldBlock => {
-					continue;
-				},
-
-				Err(_) => {
-					todo!();
-				},
-			}
-		}
-
+		command.to_stream(&self.stream);
 		self.receive_response().await
 	}
 
