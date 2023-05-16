@@ -5,8 +5,8 @@ mod policy;
 mod tcp_client;
 
 use clap::Parser;
+use paper_core::error::PaperError;
 use crate::command_parser::CommandParser;
-use crate::command::Command;
 use crate::command_error::ErrorKind;
 use crate::tcp_client::TcpClient;
 
@@ -25,10 +25,7 @@ async fn main() {
 	let args = Args::parse();
 
 	let mut client = match TcpClient::new(&args.host, &args.port).await {
-		Ok(client) => {
-			println!("Connected");
-			client
-		},
+		Ok(client) => client,
 
 		Err(_) => {
 			println!("Could not connect to server.");
@@ -42,38 +39,18 @@ async fn main() {
 		match parser.read() {
 			Ok(command) => {
 				match client.send_command(&command).await {
-					Ok(response) => {
+					Ok(sheet) => {
+						if sheet.is_ok() {
+							println!("\x1B[33mOk\x1B[0m: {}", sheet.data());
+						} else {
+							println!("\x1B[31mErr\x1B[0m: {}", sheet.data());
+						}
 					},
 
-					Err(_) => {
+					Err(err) => {
+						println!("\x1B[31mErr\x1B[0m: {}", err.message())
 					},
 				}
-
-				/*match command {
-					Command::Ping => {
-						println!("ping command");
-					},
-
-					Command::Get(key) => {
-						println!("get: key {}", key);
-					},
-
-					Command::Set(key, value, ttl) => {
-						println!("set: key {}, value size {}, ttl {}", key, value.len(), ttl);
-					},
-
-					Command::Del(key) => {
-						println!("del: key {}", key);
-					},
-
-					Command::Resize(size) => {
-						println!("resize: {}", size);
-					},
-
-					Command::Policy(policy) => {
-						println!("policy: {}", policy);
-					},
-				}*/
 			},
 
 			Err(err) => {

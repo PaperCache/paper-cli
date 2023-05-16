@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+pub use paper_core::error::PaperError;
 
 #[derive(PartialEq, Debug)]
 pub enum ErrorKind {
@@ -30,8 +31,10 @@ impl CommandError {
 	pub fn kind(&self) -> &ErrorKind {
 		&self.kind
 	}
+}
 
-	pub fn message(&self) -> &String {
+impl PaperError for CommandError {
+	fn message(&self) -> &str {
 		&self.message
 	}
 }
