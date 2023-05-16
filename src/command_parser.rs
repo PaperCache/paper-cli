@@ -38,7 +38,7 @@ impl CommandParser {
 				self.reading = false;
 
 				return Err(CommandError::new(
-					ErrorKind::Quit,
+					ErrorKind::Disconnected,
 					"Closing connection."
 				));
 			}
@@ -61,7 +61,11 @@ impl CommandParser {
 
 		for capture in self.regex.captures_iter(line) {
 			if let Some(token) = capture.get(0) {
-				tokens.push(token.as_str().to_string());
+				let token = token
+					.as_str()
+					.trim_matches('\"');
+
+				tokens.push(token.to_string());
 			}
 		}
 
@@ -89,7 +93,7 @@ fn parse_command(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		"policy" => parse_policy(tokens),
 
 		"q" | "quit" => Err(CommandError::new(
-			ErrorKind::Quit,
+			ErrorKind::Disconnected,
 			"Closing connection."
 		)),
 
@@ -104,7 +108,7 @@ fn parse_ping(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	if tokens.len() != 1 {
 		return Err(CommandError::new(
 			ErrorKind::InvalidArguments,
-			"Invalid arguments for <PING> command."
+			"Invalid arguments for <ping> command."
 		));
 	}
 
@@ -115,7 +119,7 @@ fn parse_get(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	if tokens.len() != 2 {
 		return Err(CommandError::new(
 			ErrorKind::InvalidArguments,
-			"Invalid arguments for <GET> command."
+			"Invalid arguments for <get> command."
 		));
 	}
 
@@ -126,7 +130,7 @@ fn parse_set(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	if tokens.len() < 3 || tokens.len() > 4 {
 		return Err(CommandError::new(
 			ErrorKind::InvalidArguments,
-			"Invalid arguments for <SET> command."
+			"Invalid arguments for <set> command."
 		));
 	}
 
@@ -154,7 +158,7 @@ fn parse_del(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	if tokens.len() != 2 {
 		return Err(CommandError::new(
 			ErrorKind::InvalidArguments,
-			"Invalid arguments for <DEL> command."
+			"Invalid arguments for <del> command."
 		));
 	}
 
@@ -165,7 +169,7 @@ fn parse_resize(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	if tokens.len() != 2 {
 		return Err(CommandError::new(
 			ErrorKind::InvalidArguments,
-			"Invalid arguments for <RESIZE> command."
+			"Invalid arguments for <resize> command."
 		));
 	}
 
@@ -183,7 +187,7 @@ fn parse_policy(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	if tokens.len() != 2 {
 		return Err(CommandError::new(
 			ErrorKind::InvalidArguments,
-			"Invalid arguments for <POLICY> command."
+			"Invalid arguments for <policy> command."
 		));
 	}
 

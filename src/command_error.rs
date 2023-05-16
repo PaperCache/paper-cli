@@ -14,7 +14,7 @@ pub enum ErrorKind {
 
 	InvalidStream,
 
-	Quit,
+	Disconnected,
 }
 
 #[derive(Debug)]

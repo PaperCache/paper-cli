@@ -54,7 +54,7 @@ async fn main() {
 			},
 
 			Err(err) => {
-				if *err.kind() == ErrorKind::Quit {
+				if *err.kind() == ErrorKind::Disconnected {
 					println!("{}", err.message());
 					break;
 				} else {

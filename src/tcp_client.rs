@@ -23,7 +23,13 @@ impl TcpClient {
 	}
 
 	pub async fn send_command(&mut self, command: &Command) -> Result<Sheet, SheetError> {
-		command.to_stream(&self.stream);
+		if let Err(_) = command.to_stream(&self.stream).await {
+			return Err(SheetError::new(
+				ErrorKind::InvalidStream,
+				"Could not write to stream."
+			));
+		}
+
 		self.receive_response().await
 	}
 
