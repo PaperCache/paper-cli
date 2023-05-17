@@ -92,7 +92,7 @@ fn parse_command(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		"resize" => parse_resize(tokens),
 		"policy" => parse_policy(tokens),
 
-		"q" | "quit" => Err(CommandError::new(
+		"q" | "quit" | "exit" => Err(CommandError::new(
 			ErrorKind::Disconnected,
 			"Closing connection."
 		)),
