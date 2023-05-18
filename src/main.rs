@@ -28,7 +28,7 @@ async fn main() {
 		Ok(client) => client,
 
 		Err(_) => {
-			println!("Could not connect to server.");
+			println!("\x1B[31mErr\x1B[0m: Could not connect to server.");
 			return;
 		},
 	};
