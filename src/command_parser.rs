@@ -91,6 +91,7 @@ fn parse_command(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		"del" => parse_del(tokens),
 		"resize" => parse_resize(tokens),
 		"policy" => parse_policy(tokens),
+		"stats" => parse_stats(tokens),
 
 		"q" | "quit" | "exit" => Err(CommandError::new(
 			ErrorKind::Disconnected,
@@ -194,4 +195,15 @@ fn parse_policy(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	let policy = Policy::new(&tokens[1])?;
 
 	Ok(Command::Policy(policy))
+}
+
+fn parse_stats(tokens: &Vec<String>) -> Result<Command, CommandError> {
+	if tokens.len() != 1 {
+		return Err(CommandError::new(
+			ErrorKind::InvalidArguments,
+			"Invalid arguments for <ping> command."
+		));
+	}
+
+	Ok(Command::Stats)
 }

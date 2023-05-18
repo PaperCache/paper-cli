@@ -1,7 +1,6 @@
 use std::io;
 use tokio::net::TcpStream;
-use paper_core::sheet::Sheet;
-use paper_core::sheet_error::{SheetError, ErrorKind};
+use paper_core::sheet::{Sheet, SheetError, ErrorKind};
 use crate::command::Command;
 
 pub struct TcpClient {

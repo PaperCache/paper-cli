@@ -1,6 +1,10 @@
+use std::io::Cursor;
 use tokio::net::TcpStream;
+use byteorder::{LittleEndian, ReadBytesExt};
+use kwik::fmt;
 use paper_core::stream::{write_buf as stream_write_buf};
 use paper_core::stream_error::{ErrorKind as StreamErrorKind};
+use paper_core::sheet::Sheet;
 use crate::policy::Policy;
 use crate::command_error::{CommandError, ErrorKind};
 
@@ -13,6 +17,8 @@ pub enum Command {
 
 	Resize(u64),
 	Policy(Policy),
+
+	Stats,
 }
 
 impl Command {
@@ -54,9 +60,58 @@ impl Command {
 
 				write_buf(stream, &[byte]).await?;
 			},
+
+			Command::Stats => {
+				write_buf(stream, &[6]).await?;
+			},
 		}
 
 		Ok(())
+	}
+
+	pub fn parse_sheet(&self, sheet: &Sheet) -> String {
+		match self {
+			Command::Stats => {
+				let mut rdr = Cursor::new(sheet.data());
+
+				let max_size = rdr.read_u64::<LittleEndian>().unwrap();
+				let used_size = rdr.read_u64::<LittleEndian>().unwrap();
+				let total_gets = rdr.read_u64::<LittleEndian>().unwrap();
+				let miss_ratio = rdr.read_f64::<LittleEndian>().unwrap();
+
+				let max_size_output = format!(
+					"max_size:\t{} ({} B)",
+					fmt::memory(&max_size, Some(2)),
+					max_size
+				);
+
+				let used_size_output = format!(
+					"used_size:\t{} ({} B)",
+					fmt::memory(&used_size, Some(2)),
+					used_size
+				);
+
+				let total_gets_output = format!(
+					"total_gets:\t{}",
+					fmt::number(&total_gets)
+				);
+
+				let miss_ratio_output = format!(
+					"miss_ratio:\t{:.3}",
+					miss_ratio
+				);
+
+				format!(
+					"paper stats\n{}\n{}\n{}\n{}",
+					max_size_output,
+					used_size_output,
+					total_gets_output,
+					miss_ratio_output
+				)
+			},
+
+			_ => sheet.to_string(),
+		}
 	}
 }
 

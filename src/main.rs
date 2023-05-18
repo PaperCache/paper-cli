@@ -41,9 +41,9 @@ async fn main() {
 				match client.send_command(&command).await {
 					Ok(sheet) => {
 						if sheet.is_ok() {
-							println!("\x1B[33mOk\x1B[0m: {}", sheet.data());
+							println!("\x1B[33mOk\x1B[0m: {}", command.parse_sheet(&sheet));
 						} else {
-							println!("\x1B[31mErr\x1B[0m: {}", sheet.data());
+							println!("\x1B[31mErr\x1B[0m: {}", sheet.to_string());
 						}
 					},
 
