@@ -1,7 +1,9 @@
 use std::io;
 use tokio::net::TcpStream;
-use paper_core::sheet::{Sheet, SheetError, ErrorKind};
+use paper_core::error::PaperError;
 use crate::command::Command;
+use crate::command::error::{CommandError, ErrorKind};
+use crate::response_sheet::ResponseSheet;
 
 pub struct TcpClient {
 	stream: TcpStream,
@@ -21,27 +23,32 @@ impl TcpClient {
 		Ok(tcp_client)
 	}
 
-	pub async fn send_command(&mut self, command: &Command) -> Result<Sheet, SheetError> {
+	pub async fn send_command(&mut self, command: &Command) -> Result<ResponseSheet, CommandError> {
 		if let Err(_) = command.to_stream(&self.stream).await {
-			return Err(SheetError::new(
+			return Err(CommandError::new(
 				ErrorKind::InvalidStream,
 				"Could not write to stream."
 			));
 		}
 
-		self.receive_response().await
+		self.receive_response(command).await
 	}
 
-	pub async fn receive_response(&mut self) -> Result<Sheet, SheetError> {
+	pub async fn receive_response(&mut self, command: &Command) -> Result<ResponseSheet, CommandError> {
 		if let Err(_) = self.stream.readable().await {
-			return Err(SheetError::new(
+			return Err(CommandError::new(
 				ErrorKind::InvalidStream,
 				"Could not read response."
 			));
 		}
 
-		let sheet = Sheet::from_stream(&self.stream)?;
+		match command.parse_stream(&self.stream).await  {
+			Ok(response) => Ok(response),
 
-		Ok(sheet)
+			Err(err) => Err(CommandError::new(
+				ErrorKind::InvalidCommand,
+				err.message(),
+			)),
+		}
 	}
 }

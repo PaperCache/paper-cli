@@ -1,12 +1,12 @@
-use std::io::Cursor;
+pub mod error;
+pub mod parser;
+
 use tokio::net::TcpStream;
-use byteorder::{LittleEndian, ReadBytesExt};
 use kwik::fmt;
-use paper_core::stream::{write_buf as stream_write_buf};
-use paper_core::stream_error::{ErrorKind as StreamErrorKind};
-use paper_core::sheet::Sheet;
+use paper_core::stream::{StreamReader, StreamError};
+use paper_core::sheet::SheetBuilder;
 use crate::policy::Policy;
-use crate::command_error::{CommandError, ErrorKind};
+use crate::response_sheet::ResponseSheet;
 
 pub enum Command {
 	Ping,
@@ -22,62 +22,76 @@ pub enum Command {
 }
 
 impl Command {
-	pub async fn to_stream(&self, stream: &TcpStream) -> Result<(), CommandError> {
-		match self {
+	pub async fn to_stream(&self, stream: &TcpStream) -> Result<(), StreamError> {
+		let sheet = match self {
 			Command::Ping => {
-				write_buf(stream, &[0]).await?;
+				SheetBuilder::new()
+					.write_u8(&0)
+					.to_sheet()
 			},
 
 			Command::Get(key) => {
-				write_buf(stream, &[1]).await?;
-				write_str(stream, &key).await?;
+				SheetBuilder::new()
+					.write_u8(&1)
+					.write_str(&key)
+					.to_sheet()
 			},
 
 			Command::Set(key, value, ttl) => {
-				write_buf(stream, &[2]).await?;
-				write_str(stream, &key).await?;
-				write_str(stream, &value).await?;
-				write_u32(stream, ttl).await?;
+				SheetBuilder::new()
+					.write_u8(&2)
+					.write_str(&key)
+					.write_str(&value)
+					.write_u32(&ttl)
+					.to_sheet()
 			},
 
 			Command::Del(key) => {
-				write_buf(stream, &[3]).await?;
-				write_str(stream, &key).await?;
+				SheetBuilder::new()
+					.write_u8(&3)
+					.write_str(&key)
+					.to_sheet()
 			},
 
 			Command::Resize(size) => {
-				write_buf(stream, &[4]).await?;
-				write_u64(stream, &size).await?;
+				SheetBuilder::new()
+					.write_u8(&4)
+					.write_u64(&size)
+					.to_sheet()
 			},
 
 			Command::Policy(policy) => {
-				write_buf(stream, &[5]).await?;
-
 				let byte: u8 = match policy {
 					Policy::Lru => 0,
 					Policy::Mru => 1,
 				};
 
-				write_buf(stream, &[byte]).await?;
+				SheetBuilder::new()
+					.write_u8(&5)
+					.write_u8(&byte)
+					.to_sheet()
 			},
 
 			Command::Stats => {
-				write_buf(stream, &[6]).await?;
+				SheetBuilder::new()
+					.write_u8(&6)
+					.to_sheet()
 			},
-		}
+		};
 
-		Ok(())
+		sheet.to_stream(stream).await
 	}
 
-	pub fn parse_sheet(&self, sheet: &Sheet) -> String {
-		match self {
-			Command::Stats => {
-				let mut rdr = Cursor::new(sheet.data());
+	pub async fn parse_stream(&self, stream: &TcpStream) -> Result<ResponseSheet, StreamError> {
+		let reader = StreamReader::new(stream);
+		let is_ok = reader.read_bool().await?;
 
-				let max_size = rdr.read_u64::<LittleEndian>().unwrap();
-				let used_size = rdr.read_u64::<LittleEndian>().unwrap();
-				let total_gets = rdr.read_u64::<LittleEndian>().unwrap();
-				let miss_ratio = rdr.read_f64::<LittleEndian>().unwrap();
+		let response = match self {
+			Command::Stats => {
+				let max_size = reader.read_u64().await?;
+				let used_size = reader.read_u64().await?;
+				let total_gets = reader.read_u64().await?;
+				let miss_ratio = reader.read_f64().await?;
 
 				let max_size_output = format!(
 					"max_size:\t{} ({} B)",
@@ -110,36 +124,11 @@ impl Command {
 				)
 			},
 
-			_ => sheet.to_string(),
-		}
-	}
-}
+			_ => {
+				reader.read_string().await?
+			},
+		};
 
-async fn write_u32(stream: &TcpStream, data: &u32) -> Result<(), CommandError> {
-	write_buf(stream, &data.to_le_bytes()).await
-}
-
-async fn write_u64(stream: &TcpStream, data: &u64) -> Result<(), CommandError> {
-	write_buf(stream, &data.to_le_bytes()).await
-}
-
-async fn write_str(stream: &TcpStream, data: &str) -> Result<(), CommandError> {
-	write_u32(stream, &(data.len() as u32)).await?;
-	write_buf(stream, data.as_bytes()).await
-}
-
-async fn write_buf(stream: &TcpStream, buf: &[u8]) -> Result<(), CommandError> {
-	match stream_write_buf(stream, buf).await {
-		Ok(_) => Ok(()),
-
-		Err(ref err) if err.kind() == &StreamErrorKind::Disconnected => Err(CommandError::new(
-			ErrorKind::Disconnected,
-			"Disconnected from server."
-		)),
-
-		Err(_) => Err(CommandError::new(
-			ErrorKind::InvalidStream,
-			"Could not write command to stream."
-		)),
+		Ok(ResponseSheet::new(is_ok, response))
 	}
 }

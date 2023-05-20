@@ -1,4 +1,4 @@
-use crate::command_error::{CommandError, ErrorKind};
+use crate::command::error::{CommandError, ErrorKind};
 use std::fmt::{Display, Formatter};
 
 pub enum Policy {

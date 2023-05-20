@@ -1,8 +1,8 @@
 use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
 use regex::Regex;
-use crate::command_error::{CommandError, ErrorKind};
 use crate::command::Command;
+use crate::command::error::{CommandError, ErrorKind};
 use crate::policy::Policy;
 
 pub struct CommandParser {
@@ -201,7 +201,7 @@ fn parse_stats(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	if tokens.len() != 1 {
 		return Err(CommandError::new(
 			ErrorKind::InvalidArguments,
-			"Invalid arguments for <ping> command."
+			"Invalid arguments for <stats> command."
 		));
 	}
 

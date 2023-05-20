@@ -1,13 +1,12 @@
-mod command_error;
-mod command_parser;
 mod command;
+mod response_sheet;
 mod policy;
 mod tcp_client;
 
 use clap::Parser;
 use paper_core::error::PaperError;
-use crate::command_parser::CommandParser;
-use crate::command_error::ErrorKind;
+use crate::command::parser::CommandParser;
+use crate::command::error::ErrorKind;
 use crate::tcp_client::TcpClient;
 
 #[derive(Parser)]
@@ -41,14 +40,14 @@ async fn main() {
 				match client.send_command(&command).await {
 					Ok(sheet) => {
 						if sheet.is_ok() {
-							println!("\x1B[33mOk\x1B[0m: {}", command.parse_sheet(&sheet));
+							println!("\x1B[33mOk\x1B[0m: {}", sheet.response());
 						} else {
-							println!("\x1B[31mErr\x1B[0m: {}", sheet.to_string());
+							println!("\x1B[31mErr\x1B[0m: {}", sheet.response());
 						}
 					},
 
 					Err(err) => {
-						println!("\x1B[31mErr\x1B[0m: {}", err.message())
+						println!("\x1B[31mErr\x1B[0m: {}", err.message());
 					},
 				}
 			},
