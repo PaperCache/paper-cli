@@ -1,14 +1,11 @@
-use rustyline::error::ReadlineError;
-use rustyline::DefaultEditor;
 use regex::Regex;
 use crate::command::Command;
 use crate::command::error::{CommandError, ErrorKind};
 use crate::policy::Policy;
+use crate::line_reader::{LineReader, ErrorKind as LineReaderErrorKind};
 
 pub struct CommandParser {
-	prompt: String,
-
-	editor: DefaultEditor,
+	line_reader: LineReader,
 	regex: Regex,
 
 	reading: bool,
@@ -16,10 +13,21 @@ pub struct CommandParser {
 
 impl CommandParser {
 	pub fn new(host: &str, port: &u32) -> Self {
-		CommandParser {
-			prompt: format!("\x1B[32m{}:{:0>4}\x1B[0m> ", host, port),
+		let prompt = format!("\x1B[32m{}:{:0>4}\x1B[0m> ", host, port);
+		let mut line_reader = LineReader::new(prompt);
 
-			editor: DefaultEditor::new().unwrap(),
+		line_reader.register_hint("ping".to_owned());
+		line_reader.register_hint("get <key>".to_owned());
+		line_reader.register_hint("set <key> <value> [ttl]".to_owned());
+		line_reader.register_hint("del <key>".to_owned());
+		line_reader.register_hint("resize <size>".to_owned());
+		line_reader.register_hint("policy <policy>".to_owned());
+		line_reader.register_hint("stats".to_owned());
+		line_reader.register_hint("quit".to_owned());
+		line_reader.register_hint("exit".to_owned());
+
+		CommandParser {
+			line_reader,
 			regex: Regex::new(r#""([^"]+)"|(\S+)"#).unwrap(),
 
 			reading: true,
@@ -31,17 +39,17 @@ impl CommandParser {
 	}
 
 	pub fn read(&mut self) -> Result<Command, CommandError> {
-		let tokens = match self.editor.readline(&self.prompt) {
+		let tokens = match self.line_reader.read() {
 			Ok(line) => self.parse_line(&line)?,
 
-			Err(ReadlineError::Interrupted | ReadlineError::Eof) => {
+			Err(err) if err.kind() == &LineReaderErrorKind::Closed => {
 				self.reading = false;
 
 				return Err(CommandError::new(
 					ErrorKind::Disconnected,
 					"Closing connection."
 				));
-			}
+			},
 
 			Err(_) => {
 				return Err(CommandError::new(

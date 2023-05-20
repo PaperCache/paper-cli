@@ -7,10 +7,10 @@ edition = "2021"
 
 [dependencies]
 regex = "1.8.1"
-rustyline = "11.0.0"
 fasthash = "0.4.0"
 clap = { version = "4.2.7", features = ["derive"] }
 tokio = { version = "1.28.1", features = ["full"] }
 paper_core = { git = "ssh://git@github.com/Paper-Book/paper-core.git", version = "0.1.0" }
 byteorder = "1.4.3"
 kwik = { git = "https://github.com/KiaShakiba/kwik-rs.git", version = "0.1.0" }
+crossterm = "0.26.1"
