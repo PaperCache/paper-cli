@@ -12,8 +12,6 @@ pub enum ErrorKind {
 	InvalidTtl,
 	InvalidPolicy,
 
-	InvalidStream,
-
 	Disconnected,
 }
 

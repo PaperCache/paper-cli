@@ -1,7 +1,7 @@
 use regex::Regex;
+use paper_client::Policy;
 use crate::command::Command;
 use crate::command::error::{CommandError, ErrorKind};
-use crate::policy::Policy;
 use crate::line_reader::{LineReader, ErrorKind as LineReaderErrorKind};
 
 pub struct CommandParser {
@@ -200,7 +200,17 @@ fn parse_policy(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		));
 	}
 
-	let policy = Policy::new(&tokens[1])?;
+	let policy = match tokens[1].as_str() {
+		"lru" => Policy::Lru,
+		"mru" => Policy::Mru,
+
+		_ => {
+			return Err(CommandError::new(
+				ErrorKind::InvalidPolicy,
+				"Invalid policy."
+			));
+		}
+	};
 
 	Ok(Command::Policy(policy))
 }

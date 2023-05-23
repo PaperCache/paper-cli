@@ -1,14 +1,11 @@
 mod line_reader;
 mod command;
-mod response_sheet;
-mod policy;
-mod tcp_client;
 
 use clap::Parser;
 use paper_core::error::PaperError;
+use paper_client::PaperClient;
 use crate::command::parser::CommandParser;
 use crate::command::error::ErrorKind;
-use crate::tcp_client::TcpClient;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -24,7 +21,7 @@ struct Args {
 async fn main() {
 	let args = Args::parse();
 
-	let mut client = match TcpClient::new(&args.host, &args.port).await {
+	let client = match PaperClient::new(&args.host, &args.port).await {
 		Ok(client) => client,
 
 		Err(_) => {
@@ -38,12 +35,12 @@ async fn main() {
 	while parser.reading() {
 		match parser.read() {
 			Ok(command) => {
-				match client.send_command(&command).await {
-					Ok(sheet) => {
-						if sheet.is_ok() {
-							println!("\x1B[33mOk\x1B[0m: {}", sheet.response());
+				match command.send(&client).await {
+					Ok(response) => {
+						if response.is_ok() {
+							println!("\x1B[33mOk\x1B[0m: {}", response.data());
 						} else {
-							println!("\x1B[31mErr\x1B[0m: {}", sheet.response());
+							println!("\x1B[31mErr\x1B[0m: {}", response.data());
 						}
 					},
 
