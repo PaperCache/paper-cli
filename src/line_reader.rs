@@ -22,8 +22,10 @@ enum ReadEvent {
 	Enter,
 	Closed,
 
-	PreviousHistory,
-	NextHistory,
+	UpArrow,
+	DownArrow,
+	LeftArrow,
+	RightArrow,
 }
 
 impl LineReader {
@@ -73,7 +75,7 @@ impl LineReader {
 					));
 				},
 
-				ReadEvent::PreviousHistory => {
+				ReadEvent::UpArrow => {
 					let mut updated = false;
 
 					if self.history_index > 0 {
@@ -88,7 +90,7 @@ impl LineReader {
 					}
 				},
 
-				ReadEvent::NextHistory => {
+				ReadEvent::DownArrow => {
 					let mut updated = false;
 
 					if self.history_index < self.history.len() {
@@ -113,8 +115,18 @@ impl LineReader {
 			}
 		}
 
-		self.history.push(input.clone());
-		self.history_index = self.history.len();
+		let push_history = match self.history.last() {
+			Some(last_input) => {
+				*last_input != input
+			},
+
+			None => true,
+		};
+
+		if push_history {
+			self.history.push(input.clone());
+			self.history_index = self.history.len();
+		}
 
 		Ok(input)
 	}
@@ -197,11 +209,11 @@ fn read(input: &mut String) -> ReadEvent {
 				},
 
 				KeyCode::Up => {
-					return ReadEvent::PreviousHistory;
+					return ReadEvent::UpArrow;
 				},
 
 				KeyCode::Down => {
-					return ReadEvent::NextHistory;
+					return ReadEvent::DownArrow;
 				},
 
 				_ => {},
