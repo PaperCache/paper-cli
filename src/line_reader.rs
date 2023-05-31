@@ -29,6 +29,9 @@ enum ReadEvent {
 	DownArrow,
 	RightArrow,
 	LeftArrow,
+
+	Home,
+	End,
 }
 
 impl LineReader {
@@ -104,6 +107,14 @@ impl LineReader {
 					line.move_cursor_left();
 				},
 
+				ReadEvent::Home => {
+					line.move_cursor_start();
+				},
+
+				ReadEvent::End => {
+					line.move_cursor_end();
+				},
+
 				ReadEvent::Skip => {},
 			}
 
@@ -143,6 +154,9 @@ fn event() -> ReadEvent {
 				KeyCode::Down => ReadEvent::DownArrow,
 				KeyCode::Left => ReadEvent::LeftArrow,
 				KeyCode::Right => ReadEvent::RightArrow,
+				KeyCode::Home => ReadEvent::Home,
+				KeyCode::End => ReadEvent::End,
+
 				_ => ReadEvent::Skip,
 			}
 		},

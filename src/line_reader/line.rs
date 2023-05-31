@@ -60,6 +60,14 @@ impl Line {
 		self.position += 1;
 	}
 
+	pub fn move_cursor_start(&mut self) {
+		self.position = 0;
+	}
+
+	pub fn move_cursor_end(&mut self) {
+		self.position = self.buf.len();
+	}
+
 	fn get_hint(&self, hints: &Vec<&'static str>) -> Option<&'static str> {
 		if self.buf.len() < 2 {
 			return None;
