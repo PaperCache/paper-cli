@@ -16,15 +16,15 @@ impl CommandParser {
 		let prompt = format!("\x1B[32m{}:{:0>4}\x1B[0m> ", host, port);
 		let mut line_reader = LineReader::new(prompt);
 
-		line_reader.register_hint("ping".to_owned());
-		line_reader.register_hint("get <key>".to_owned());
-		line_reader.register_hint("set <key> <value> [ttl]".to_owned());
-		line_reader.register_hint("del <key>".to_owned());
-		line_reader.register_hint("resize <size>".to_owned());
-		line_reader.register_hint("policy <policy>".to_owned());
-		line_reader.register_hint("stats".to_owned());
-		line_reader.register_hint("quit".to_owned());
-		line_reader.register_hint("exit".to_owned());
+		line_reader.register_hint("ping");
+		line_reader.register_hint("get <key>");
+		line_reader.register_hint("set <key> <value> [ttl]");
+		line_reader.register_hint("del <key>");
+		line_reader.register_hint("resize <size>");
+		line_reader.register_hint("policy <policy>");
+		line_reader.register_hint("stats");
+		line_reader.register_hint("quit");
+		line_reader.register_hint("exit");
 
 		CommandParser {
 			line_reader,

@@ -1,4 +1,5 @@
 mod error;
+mod line;
 mod history;
 
 use std::io;
@@ -6,17 +7,19 @@ use std::io::{Write, Stdout};
 use crossterm::terminal;
 use crossterm::event::{read as crossterm_read, Event, KeyEvent, KeyCode, KeyModifiers};
 use crate::line_reader::history::History;
+use crate::line_reader::line::Line;
 pub use crate::line_reader::error::{LineReaderError, ErrorKind};
 
 pub struct LineReader {
 	prompt: String,
 
-	hints: Vec<String>,
+	hints: Vec<&'static str>,
 	history: History,
 }
 
 enum ReadEvent {
-	Character,
+	Character(char),
+	Backspace,
 	Skip,
 
 	Enter,
@@ -38,7 +41,7 @@ impl LineReader {
 		}
 	}
 
-	pub fn register_hint(&mut self, hint: String) {
+	pub fn register_hint(&mut self, hint: &'static str) {
 		self.hints.push(hint);
 	}
 
@@ -46,23 +49,23 @@ impl LineReader {
 		enable_raw_mode()?;
 
 		let mut stdout = io::stdout();
-		let mut input = String::new();
+		let mut line = Line::new();
 
-		self.write(&mut stdout, &input)?;
+		line.write(&mut stdout, &self.prompt, &self.hints)?;
 
 		loop {
-			match read(&mut input) {
-				ReadEvent::Character => {
-					self.history.move_to_last();
-					self.write(&mut stdout, &input)?;
+			match event() {
+				ReadEvent::Character(c) => {
+					self.history.move_to_end();
+					line.insert(c);
+				},
 
-					if let Some(hint) = self.get_hint(&input) {
-						self.write_hint(&mut stdout, hint)?;
-					}
+				ReadEvent::Backspace => {
+					line.erase_one();
 				},
 
 				ReadEvent::Enter => {
-					self.history.move_to_last();
+					self.history.move_to_end();
 
 					clear(&mut stdout)?;
 					disable_raw_mode()?;
@@ -81,125 +84,40 @@ impl LineReader {
 				},
 
 				ReadEvent::UpArrow => {
-					match self.history.prev() {
-						Some(command) => input = command.to_owned(),
-						None => {},//input.clear(),
-					};
-
-					self.write(&mut stdout, &input)?;
-
-					if let Some(hint) = self.get_hint(&input) {
-						self.write_hint(&mut stdout, hint)?;
+					if let Some(command) = self.history.prev() {
+						line.set(command);
 					}
 				},
 
 				ReadEvent::DownArrow => {
 					match self.history.next() {
-						Some(command) => input = command.to_owned(),
-						None => input.clear(),
+						Some(command) => line.set(command),
+						None => line.clear(),
 					};
-
-					self.write(&mut stdout, &input)?;
-
-					if let Some(hint) = self.get_hint(&input) {
-						self.write_hint(&mut stdout, hint)?;
-					}
 				},
 
 				ReadEvent::RightArrow => {
-					self.move_cursor_left(&mut stdout)?;
+					line.move_cursor_right();
 				},
 
 				ReadEvent::LeftArrow => {
-					self.move_cursor_right(&mut stdout)?;
+					line.move_cursor_left();
 				},
 
 				ReadEvent::Skip => {},
 			}
+
+			line.write(&mut stdout, &self.prompt, &self.hints)?;
 		}
 
-		self.history.push(&input);
+		self.history.push(&line);
 
-		Ok(input)
-	}
-
-	fn write(&self, stdout: &mut Stdout, input: &str) -> Result<(), LineReaderError> {
-		let result = match write!(stdout, "\r\x1b[K{}{}", self.prompt, input) {
-			Ok(()) => Ok(()),
-
-			Err(_) => Err(LineReaderError::new(
-				ErrorKind::Internal,
-				"Could not write to terminal."
-			)),
-		};
-
-		flush(stdout)?;
-
-		result
-	}
-
-	fn write_hint(&self, stdout: &mut Stdout, hint: &str) -> Result<(), LineReaderError> {
-		let result = match write!(stdout, "\x1B[33m{}\x1B[0m\x1B[{}D", hint, hint.len()) {
-			Ok(()) => Ok(()),
-
-			Err(_) => Err(LineReaderError::new(
-				ErrorKind::Internal,
-				"Could not write to terminal."
-			)),
-		};
-
-		flush(stdout)?;
-
-		result
-	}
-
-	fn move_cursor_left(&self, stdout: &mut Stdout) -> Result<(), LineReaderError> {
-		let result = match write!(stdout, "\x1B[C") {
-			Ok(()) => Ok(()),
-
-			Err(_) => Err(LineReaderError::new(
-				ErrorKind::Internal,
-				"Could not write to terminal."
-			)),
-		};
-
-		flush(stdout)?;
-
-		result
-	}
-
-	fn move_cursor_right(&self, stdout: &mut Stdout) -> Result<(), LineReaderError> {
-		let result = match write!(stdout, "\x1B[D") {
-			Ok(()) => Ok(()),
-
-			Err(_) => Err(LineReaderError::new(
-				ErrorKind::Internal,
-				"Could not write to terminal."
-			)),
-		};
-
-		flush(stdout)?;
-
-		result
-	}
-
-	fn get_hint(&self, input: &str) -> Option<&str> {
-		if input.len() < 2 {
-			return None;
-		}
-
-		for hint in &self.hints {
-			if hint.starts_with(input) && hint.len() != input.len() {
-				return Some(&hint[input.len()..]);
-			}
-		}
-
-		None
+		Ok(line.to_string())
 	}
 }
 
-fn read(input: &mut String) -> ReadEvent {
-	let event = match crossterm_read() {
+fn event() -> ReadEvent {
+	let crossterm_event = match crossterm_read() {
 		Ok(event) => event,
 
 		Err(_) => {
@@ -207,7 +125,7 @@ fn read(input: &mut String) -> ReadEvent {
 		},
 	};
 
-	match event {
+	match crossterm_event {
 		Event::Key(key_event) => {
 			if is_ctrl_c(key_event) {
 				return ReadEvent::Closed;
@@ -218,42 +136,19 @@ fn read(input: &mut String) -> ReadEvent {
 			}
 
 			match key_event.code {
-				KeyCode::Char(c) => {
-					input.push(c);
-				},
-
-				KeyCode::Backspace => {
-					input.pop();
-				},
-
-				KeyCode::Enter => {
-					return ReadEvent::Enter;
-				},
-
-				KeyCode::Up => {
-					return ReadEvent::UpArrow;
-				},
-
-				KeyCode::Down => {
-					return ReadEvent::DownArrow;
-				},
-
-				KeyCode::Left => {
-					return ReadEvent::LeftArrow;
-				},
-
-				KeyCode::Right => {
-					return ReadEvent::RightArrow;
-				},
-
-				_ => {},
+				KeyCode::Char(c) => ReadEvent::Character(c),
+				KeyCode::Backspace => ReadEvent::Backspace,
+				KeyCode::Enter => ReadEvent::Enter,
+				KeyCode::Up => ReadEvent::UpArrow,
+				KeyCode::Down => ReadEvent::DownArrow,
+				KeyCode::Left => ReadEvent::LeftArrow,
+				KeyCode::Right => ReadEvent::RightArrow,
+				_ => ReadEvent::Skip,
 			}
 		},
 
-		_ => {},
+		_ => ReadEvent::Skip,
 	}
-
-	ReadEvent::Character
 }
 
 fn clear(stdout: &mut Stdout) -> Result<(), LineReaderError> {
@@ -271,7 +166,7 @@ fn clear(stdout: &mut Stdout) -> Result<(), LineReaderError> {
 	write_result
 }
 
-fn flush(stdout: &mut Stdout) -> Result<(), LineReaderError> {
+pub fn flush(stdout: &mut Stdout) -> Result<(), LineReaderError> {
 	match stdout.flush() {
 		Ok(()) => Ok(()),
 
