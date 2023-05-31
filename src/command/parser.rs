@@ -20,6 +20,7 @@ impl CommandParser {
 		line_reader.register_hint("get <key>");
 		line_reader.register_hint("set <key> <value> [ttl]");
 		line_reader.register_hint("del <key>");
+		line_reader.register_hint("clear");
 		line_reader.register_hint("resize <size>");
 		line_reader.register_hint("policy <policy>");
 		line_reader.register_hint("stats");
@@ -97,8 +98,12 @@ fn parse_command(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		"get" => parse_get(tokens),
 		"set" => parse_set(tokens),
 		"del" => parse_del(tokens),
+
+		"clear" => parse_clear(tokens),
+
 		"resize" => parse_resize(tokens),
 		"policy" => parse_policy(tokens),
+
 		"stats" => parse_stats(tokens),
 
 		"q" | "quit" | "exit" => Err(CommandError::new(
@@ -172,6 +177,17 @@ fn parse_del(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	}
 
 	Ok(Command::Del(tokens[1].clone()))
+}
+
+fn parse_clear(tokens: &Vec<String>) -> Result<Command, CommandError> {
+	if tokens.len() != 1 {
+		return Err(CommandError::new(
+			ErrorKind::InvalidArguments,
+			"Invalid arguments for <clear> command."
+		));
+	}
+
+	Ok(Command::Clear)
 }
 
 fn parse_resize(tokens: &Vec<String>) -> Result<Command, CommandError> {
