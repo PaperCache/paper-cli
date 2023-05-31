@@ -19,8 +19,9 @@ pub struct LineReader {
 
 enum ReadEvent {
 	Character(char),
+
 	Backspace,
-	Skip,
+	Delete,
 
 	Enter,
 	Closed,
@@ -32,6 +33,8 @@ enum ReadEvent {
 
 	Home,
 	End,
+
+	Skip,
 }
 
 impl LineReader {
@@ -64,7 +67,11 @@ impl LineReader {
 				},
 
 				ReadEvent::Backspace => {
-					line.erase_one();
+					line.erase_left();
+				},
+
+				ReadEvent::Delete => {
+					line.erase_right();
 				},
 
 				ReadEvent::Enter => {
@@ -100,19 +107,19 @@ impl LineReader {
 				},
 
 				ReadEvent::RightArrow => {
-					line.move_cursor_right();
+					line.move_right();
 				},
 
 				ReadEvent::LeftArrow => {
-					line.move_cursor_left();
+					line.move_left();
 				},
 
 				ReadEvent::Home => {
-					line.move_cursor_start();
+					line.move_start();
 				},
 
 				ReadEvent::End => {
-					line.move_cursor_end();
+					line.move_end();
 				},
 
 				ReadEvent::Skip => {},
@@ -148,12 +155,17 @@ fn event() -> ReadEvent {
 
 			match key_event.code {
 				KeyCode::Char(c) => ReadEvent::Character(c),
+
 				KeyCode::Backspace => ReadEvent::Backspace,
+				KeyCode::Delete => ReadEvent::Delete,
+
 				KeyCode::Enter => ReadEvent::Enter,
+
 				KeyCode::Up => ReadEvent::UpArrow,
 				KeyCode::Down => ReadEvent::DownArrow,
 				KeyCode::Left => ReadEvent::LeftArrow,
 				KeyCode::Right => ReadEvent::RightArrow,
+
 				KeyCode::Home => ReadEvent::Home,
 				KeyCode::End => ReadEvent::End,
 

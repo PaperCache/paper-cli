@@ -30,7 +30,7 @@ impl Line {
 		self.position += 1;
 	}
 
-	pub fn erase_one(&mut self) {
+	pub fn erase_left(&mut self) {
 		if self.position == 0 {
 			return;
 		}
@@ -39,12 +39,20 @@ impl Line {
 		self.position -= 1;
 	}
 
+	pub fn erase_right(&mut self) {
+		if self.position == self.buf.len() {
+			return;
+		}
+
+		self.buf.remove(self.position);
+	}
+
 	pub fn clear(&mut self) {
 		self.buf.clear();
 		self.position = 0;
 	}
 
-	pub fn move_cursor_left(&mut self) {
+	pub fn move_left(&mut self) {
 		if self.position == 0 {
 			return;
 		}
@@ -52,7 +60,7 @@ impl Line {
 		self.position -= 1;
 	}
 
-	pub fn move_cursor_right(&mut self) {
+	pub fn move_right(&mut self) {
 		if self.position == self.buf.len() {
 			return;
 		}
@@ -60,11 +68,11 @@ impl Line {
 		self.position += 1;
 	}
 
-	pub fn move_cursor_start(&mut self) {
+	pub fn move_start(&mut self) {
 		self.position = 0;
 	}
 
-	pub fn move_cursor_end(&mut self) {
+	pub fn move_end(&mut self) {
 		self.position = self.buf.len();
 	}
 
