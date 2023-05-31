@@ -149,7 +149,9 @@ fn event() -> ReadEvent {
 				return ReadEvent::Closed;
 			}
 
-			if key_event.modifiers != KeyModifiers::NONE {
+			if key_event.modifiers != KeyModifiers::NONE &&
+				key_event.modifiers != KeyModifiers::SHIFT {
+
 				return ReadEvent::Skip;
 			}
 
