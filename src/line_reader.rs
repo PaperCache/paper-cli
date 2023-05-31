@@ -1,18 +1,18 @@
 mod error;
+mod history;
 
 use std::io;
 use std::io::{Write, Stdout};
 use crossterm::terminal;
 use crossterm::event::{read as crossterm_read, Event, KeyEvent, KeyCode, KeyModifiers};
+use crate::line_reader::history::History;
 pub use crate::line_reader::error::{LineReaderError, ErrorKind};
 
 pub struct LineReader {
 	prompt: String,
 
 	hints: Vec<String>,
-
-	history: Vec<String>,
-	history_index: usize,
+	history: History,
 }
 
 enum ReadEvent {
@@ -24,8 +24,8 @@ enum ReadEvent {
 
 	UpArrow,
 	DownArrow,
-	LeftArrow,
 	RightArrow,
+	LeftArrow,
 }
 
 impl LineReader {
@@ -34,9 +34,7 @@ impl LineReader {
 			prompt,
 
 			hints: Vec::new(),
-
-			history: Vec::new(),
-			history_index: 0,
+			history: History::new(),
 		}
 	}
 
@@ -55,10 +53,17 @@ impl LineReader {
 		loop {
 			match read(&mut input) {
 				ReadEvent::Character => {
-					self.history_index = self.history.len();
+					self.history.move_to_last();
+					self.write(&mut stdout, &input)?;
+
+					if let Some(hint) = self.get_hint(&input) {
+						self.write_hint(&mut stdout, hint)?;
+					}
 				},
 
 				ReadEvent::Enter => {
+					self.history.move_to_last();
+
 					clear(&mut stdout)?;
 					disable_raw_mode()?;
 
@@ -76,63 +81,50 @@ impl LineReader {
 				},
 
 				ReadEvent::UpArrow => {
-					let mut updated = false;
+					match self.history.prev() {
+						Some(command) => input = command.to_owned(),
+						None => {},//input.clear(),
+					};
 
-					if self.history_index > 0 {
-						self.history_index -= 1;
-						updated = true;
-					}
+					self.write(&mut stdout, &input)?;
 
-					if self.history_index < self.history.len() {
-						input = self.history[self.history_index].to_string();
-					} else if updated {
-						input.clear();
+					if let Some(hint) = self.get_hint(&input) {
+						self.write_hint(&mut stdout, hint)?;
 					}
 				},
 
 				ReadEvent::DownArrow => {
-					let mut updated = false;
+					match self.history.next() {
+						Some(command) => input = command.to_owned(),
+						None => input.clear(),
+					};
 
-					if self.history_index < self.history.len() {
-						self.history_index += 1;
-						updated = true;
-					}
+					self.write(&mut stdout, &input)?;
 
-					if self.history_index < self.history.len() {
-						input = self.history[self.history_index].to_string();
-					} else if updated {
-						input.clear();
+					if let Some(hint) = self.get_hint(&input) {
+						self.write_hint(&mut stdout, hint)?;
 					}
+				},
+
+				ReadEvent::RightArrow => {
+					self.move_cursor_left(&mut stdout)?;
+				},
+
+				ReadEvent::LeftArrow => {
+					self.move_cursor_right(&mut stdout)?;
 				},
 
 				ReadEvent::Skip => {},
 			}
-
-			self.write(&mut stdout, &input)?;
-
-			if let Some(hint) = self.get_hint(&input) {
-				self.write_hint(&mut stdout, hint)?;
-			}
 		}
 
-		let push_history = match self.history.last() {
-			Some(last_input) => {
-				*last_input != input
-			},
-
-			None => true,
-		};
-
-		if push_history {
-			self.history.push(input.clone());
-			self.history_index = self.history.len();
-		}
+		self.history.push(&input);
 
 		Ok(input)
 	}
 
 	fn write(&self, stdout: &mut Stdout, input: &str) -> Result<(), LineReaderError> {
-		let write_result = match write!(stdout, "\r\x1b[K{}{}", self.prompt, input) {
+		let result = match write!(stdout, "\r\x1b[K{}{}", self.prompt, input) {
 			Ok(()) => Ok(()),
 
 			Err(_) => Err(LineReaderError::new(
@@ -143,11 +135,11 @@ impl LineReader {
 
 		flush(stdout)?;
 
-		write_result
+		result
 	}
 
 	fn write_hint(&self, stdout: &mut Stdout, hint: &str) -> Result<(), LineReaderError> {
-		let write_result = match write!(stdout, "\x1B[33m{}\x1B[0m\x1B[{}D", hint, hint.len()) {
+		let result = match write!(stdout, "\x1B[33m{}\x1B[0m\x1B[{}D", hint, hint.len()) {
 			Ok(()) => Ok(()),
 
 			Err(_) => Err(LineReaderError::new(
@@ -158,7 +150,37 @@ impl LineReader {
 
 		flush(stdout)?;
 
-		write_result
+		result
+	}
+
+	fn move_cursor_left(&self, stdout: &mut Stdout) -> Result<(), LineReaderError> {
+		let result = match write!(stdout, "\x1B[C") {
+			Ok(()) => Ok(()),
+
+			Err(_) => Err(LineReaderError::new(
+				ErrorKind::Internal,
+				"Could not write to terminal."
+			)),
+		};
+
+		flush(stdout)?;
+
+		result
+	}
+
+	fn move_cursor_right(&self, stdout: &mut Stdout) -> Result<(), LineReaderError> {
+		let result = match write!(stdout, "\x1B[D") {
+			Ok(()) => Ok(()),
+
+			Err(_) => Err(LineReaderError::new(
+				ErrorKind::Internal,
+				"Could not write to terminal."
+			)),
+		};
+
+		flush(stdout)?;
+
+		result
 	}
 
 	fn get_hint(&self, input: &str) -> Option<&str> {
@@ -214,6 +236,14 @@ fn read(input: &mut String) -> ReadEvent {
 
 				KeyCode::Down => {
 					return ReadEvent::DownArrow;
+				},
+
+				KeyCode::Left => {
+					return ReadEvent::LeftArrow;
+				},
+
+				KeyCode::Right => {
+					return ReadEvent::RightArrow;
 				},
 
 				_ => {},
