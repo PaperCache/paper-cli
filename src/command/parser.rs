@@ -148,23 +148,28 @@ fn parse_set(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		));
 	}
 
-	let ttl = if tokens.len() == 4 {
+	let ttl_value = if tokens.len() == 4 {
 		tokens[3].parse::<u32>()
 	} else {
 		Ok(0)
 	};
 
-	if let Err(_) = ttl {
+	if let Err(_) = ttl_value {
 		return Err(CommandError::new(
 			ErrorKind::InvalidTtl,
 			"Invalid TTL."
 		));
 	}
 
+	let ttl = match ttl_value.unwrap() {
+		0 => None,
+		value => Some(value),
+	};
+
 	Ok(Command::Set(
 		tokens[1].clone(),
 		tokens[2].clone(),
-		ttl.unwrap()
+		ttl,
 	))
 }
 

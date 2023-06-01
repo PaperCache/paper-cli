@@ -8,7 +8,7 @@ pub enum Command {
 	Ping,
 
 	Get(String),
-	Set(String, String, u32),
+	Set(String, String, Option<u32>),
 	Del(String),
 
 	Clear,
