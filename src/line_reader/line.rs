@@ -96,10 +96,7 @@ impl Line {
 		prompt: &str,
 		hints: &Vec<&'static str>
 	) -> Result<(), LineReaderError> {
-		let hint = match self.get_hint(hints) {
-			Some(hint) => hint,
-			None => "",
-		};
+		let hint = self.get_hint(hints).unwrap_or("");
 
 		let write_result = write!(
 			stdout,
@@ -124,7 +121,7 @@ impl Line {
 		result
 	}
 
-	pub fn to_string(self) -> String {
+	pub fn into_string(self) -> String {
 		self.buf
 	}
 }

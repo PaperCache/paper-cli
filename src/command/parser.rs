@@ -65,7 +65,7 @@ impl CommandParser {
 		Ok(command)
 	}
 
-	fn parse_line(&self, line: &String) -> Result<Vec<String>, CommandError> {
+	fn parse_line(&self, line: &str) -> Result<Vec<String>, CommandError> {
 		let mut tokens: Vec<String> = Vec::new();
 
 		for capture in self.regex.captures_iter(line) {
@@ -154,7 +154,7 @@ fn parse_set(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		Ok(0)
 	};
 
-	if let Err(_) = ttl_value {
+	if ttl_value.is_err() {
 		return Err(CommandError::new(
 			ErrorKind::InvalidTtl,
 			"Invalid TTL."

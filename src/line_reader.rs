@@ -130,7 +130,7 @@ impl LineReader {
 
 		self.history.push(&line);
 
-		Ok(line.to_string())
+		Ok(line.into_string())
 	}
 }
 
