@@ -100,7 +100,7 @@ impl Line {
 
 		let write_result = write!(
 			stdout,
-			"\r\x1B[K{}{}\x1B[33m{}\x1B[0m\x1B[{}G",
+			"\r\x1B[K{}{}\x1B[90m{}\x1B[0m\x1B[{}G",
 			prompt,
 			self.buf,
 			hint,
