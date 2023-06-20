@@ -6,6 +6,7 @@ use paper_client::Policy;
 
 pub enum Command {
 	Ping,
+	Version,
 
 	Get(String),
 	Set(String, String, Option<u32>),
@@ -23,6 +24,7 @@ impl Command {
 	pub async fn send(&self, client: &PaperClient) -> Result<PaperClientResponse, PaperClientError> {
 		match self {
 			Command::Ping => client.ping().await,
+			Command::Version => client.version().await,
 
 			Command::Get(key) => client.get(key).await,
 			Command::Set(key, value, ttl) => client.set(key, value, ttl).await,

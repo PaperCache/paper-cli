@@ -17,6 +17,7 @@ impl CommandParser {
 		let mut line_reader = LineReader::new(prompt);
 
 		line_reader.register_hint("ping");
+		line_reader.register_hint("version");
 		line_reader.register_hint("get <key>");
 		line_reader.register_hint("set <key> <value> [ttl]");
 		line_reader.register_hint("del <key>");
@@ -94,6 +95,7 @@ impl CommandParser {
 fn parse_command(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	match tokens[0].as_str() {
 		"ping" => parse_ping(tokens),
+		"version" => parse_version(tokens),
 
 		"get" => parse_get(tokens),
 		"set" => parse_set(tokens),
@@ -127,6 +129,17 @@ fn parse_ping(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	}
 
 	Ok(Command::Ping)
+}
+
+fn parse_version(tokens: &Vec<String>) -> Result<Command, CommandError> {
+	if tokens.len() != 1 {
+		return Err(CommandError::new(
+			ErrorKind::InvalidArguments,
+			"Invalid arguments for <version> command."
+		));
+	}
+
+	Ok(Command::Version)
 }
 
 fn parse_get(tokens: &Vec<String>) -> Result<Command, CommandError> {
