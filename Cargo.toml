@@ -15,3 +15,4 @@ paper_client = { git = "ssh://git@github.com/Paper-Book/paper-client-rs.git", ve
 byteorder = "1.4.3"
 kwik = { git = "https://github.com/KiaShakiba/kwik-rs.git", version = "0.1.0" }
 crossterm = "0.26.1"
+parse-size = "1.0.0"

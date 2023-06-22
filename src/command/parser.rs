@@ -1,4 +1,5 @@
 use regex::Regex;
+use parse_size::parse_size;
 use paper_client::Policy;
 use crate::command::Command;
 use crate::command::error::{CommandError, ErrorKind};
@@ -209,20 +210,20 @@ fn parse_clear(tokens: &Vec<String>) -> Result<Command, CommandError> {
 }
 
 fn parse_resize(tokens: &Vec<String>) -> Result<Command, CommandError> {
-	if tokens.len() != 2 {
+	if tokens.len() < 2 {
 		return Err(CommandError::new(
 			ErrorKind::InvalidArguments,
 			"Invalid arguments for <resize> command."
 		));
 	}
 
-	match tokens[1].parse::<u64>() {
+	match parse_size(tokens[1..].join(" ")) {
 		Ok(size) => Ok(Command::Resize(size)),
 
 		Err(_) => Err(CommandError::new(
 			ErrorKind::InvalidCacheSize,
 			"Invalid cache size."
-		))
+		)),
 	}
 }
 
