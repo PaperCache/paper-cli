@@ -1,20 +1,22 @@
 mod error;
 mod line;
 mod history;
+mod hinter;
 
 use std::io;
 use std::io::{Write, Stdout};
 use crossterm::terminal;
 use crossterm::event::{read as crossterm_read, Event, KeyEvent, KeyCode, KeyModifiers};
 use crate::line_reader::history::History;
+use crate::line_reader::hinter::Hinter;
 use crate::line_reader::line::Line;
 pub use crate::line_reader::error::{LineReaderError, ErrorKind};
 
 pub struct LineReader {
 	prompt: String,
 
-	hints: Vec<&'static str>,
 	history: History,
+	hinter: Hinter,
 }
 
 enum ReadEvent {
@@ -22,6 +24,7 @@ enum ReadEvent {
 
 	Backspace,
 	Delete,
+	Tab,
 
 	Enter,
 	Closed,
@@ -42,13 +45,13 @@ impl LineReader {
 		LineReader {
 			prompt,
 
-			hints: Vec::new(),
 			history: History::new(),
+			hinter: Hinter::new(),
 		}
 	}
 
 	pub fn register_hint(&mut self, hint: &'static str) {
-		self.hints.push(hint);
+		self.hinter.add(hint);
 	}
 
 	pub fn read(&mut self) -> Result<String, LineReaderError> {
@@ -57,9 +60,11 @@ impl LineReader {
 		let mut stdout = io::stdout();
 		let mut line = Line::new();
 
-		line.write(&mut stdout, &self.prompt, &self.hints)?;
+		line.write(&mut stdout, &self.prompt, None)?;
 
 		loop {
+			let partial_hint = self.hinter.get_partial_hint(&line);
+
 			match event() {
 				ReadEvent::Character(c) => {
 					self.history.move_to_end();
@@ -72,6 +77,13 @@ impl LineReader {
 
 				ReadEvent::Delete => {
 					line.erase_right();
+				},
+
+				ReadEvent::Tab => {
+					if let Some(hint) = partial_hint {
+						line.concat(hint);
+						line.insert(' ');
+					}
 				},
 
 				ReadEvent::Enter => {
@@ -125,7 +137,9 @@ impl LineReader {
 				ReadEvent::Skip => {},
 			}
 
-			line.write(&mut stdout, &self.prompt, &self.hints)?;
+			let full_hint = self.hinter.get_full_hint(&line);
+
+			line.write(&mut stdout, &self.prompt, full_hint)?;
 		}
 
 		self.history.push(&line);
@@ -160,6 +174,7 @@ fn event() -> ReadEvent {
 
 				KeyCode::Backspace => ReadEvent::Backspace,
 				KeyCode::Delete => ReadEvent::Delete,
+				KeyCode::Tab => ReadEvent::Tab,
 
 				KeyCode::Enter => ReadEvent::Enter,
 

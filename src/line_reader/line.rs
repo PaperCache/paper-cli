@@ -30,6 +30,11 @@ impl Line {
 		self.position += 1;
 	}
 
+	pub fn concat(&mut self, s: &str) {
+		self.buf.insert_str(self.position, s);
+		self.position += s.len();
+	}
+
 	pub fn erase_left(&mut self) {
 		if self.position == 0 {
 			return;
@@ -76,34 +81,18 @@ impl Line {
 		self.position = self.buf.len();
 	}
 
-	fn get_hint(&self, hints: &Vec<&'static str>) -> Option<&'static str> {
-		if self.buf.len() < 2 {
-			return None;
-		}
-
-		for hint in hints {
-			if hint.starts_with(&self.buf) && hint.len() != self.buf.len() {
-				return Some(&hint[self.buf.len()..]);
-			}
-		}
-
-		None
-	}
-
 	pub fn write(
 		&self,
 		stdout: &mut Stdout,
 		prompt: &str,
-		hints: &Vec<&'static str>
+		hint: Option<&'static str>
 	) -> Result<(), LineReaderError> {
-		let hint = self.get_hint(hints).unwrap_or("");
-
 		let write_result = write!(
 			stdout,
 			"\r\x1B[K{}{}\x1B[90m{}\x1B[0m\x1B[{}G",
 			prompt,
 			self.buf,
-			hint,
+			hint.unwrap_or(""),
 			self.position + get_prompt_len(prompt) + 1
 		);
 
