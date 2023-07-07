@@ -18,7 +18,7 @@ pub enum Command {
 	Set(String, String, Option<u32>),
 	Del(String),
 
-	Clear,
+	Wipe,
 
 	Resize(u64),
 	Policy(Policy),
@@ -36,7 +36,7 @@ impl Command {
 			Command::Set(key, value, ttl) => client.set(key, value, ttl).await,
 			Command::Del(key) => client.del(key).await,
 
-			Command::Clear => client.clear().await,
+			Command::Wipe => client.wipe().await,
 
 			Command::Resize(size) => client.resize(size).await,
 			Command::Policy(policy) => client.policy(policy).await,
