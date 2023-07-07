@@ -13,6 +13,8 @@ pub enum ErrorKind {
 	InvalidPolicy,
 
 	Disconnected,
+
+	Internal,
 }
 
 #[derive(Debug)]

@@ -1,7 +1,7 @@
 use regex::Regex;
 use parse_size::parse_size;
 use paper_client::Policy;
-use crate::command::Command;
+use crate::command::{Command, ClientCommand, CliCommand};
 use crate::command::error::{CommandError, ErrorKind};
 use crate::line_reader::{LineReader, ErrorKind as LineReaderErrorKind};
 
@@ -26,6 +26,8 @@ impl CommandParser {
 		line_reader.register_hint("resize <size>");
 		line_reader.register_hint("policy <policy>");
 		line_reader.register_hint("stats");
+
+		line_reader.register_hint("clear");
 		line_reader.register_hint("quit");
 		line_reader.register_hint("exit");
 
@@ -39,6 +41,10 @@ impl CommandParser {
 
 	pub fn reading(&self) -> bool {
 		self.reading
+	}
+
+	pub fn close(&mut self) {
+		self.reading = false;
 	}
 
 	pub fn read(&mut self) -> Result<Command, CommandError> {
@@ -109,9 +115,12 @@ fn parse_command(tokens: &Vec<String>) -> Result<Command, CommandError> {
 
 		"stats" => parse_stats(tokens),
 
-		"q" | "quit" | "exit" => Err(CommandError::new(
-			ErrorKind::Disconnected,
-			"Closing connection."
+		"clear" => Ok(Command::Cli(
+			CliCommand::Clear
+		)),
+
+		"q" | "quit" | "exit" => Ok(Command::Cli(
+			CliCommand::Quit
 		)),
 
 		_ => Err(CommandError::new(
@@ -129,7 +138,9 @@ fn parse_ping(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		));
 	}
 
-	Ok(Command::Ping)
+	Ok(Command::Client(
+		ClientCommand::Ping
+	))
 }
 
 fn parse_version(tokens: &Vec<String>) -> Result<Command, CommandError> {
@@ -140,7 +151,9 @@ fn parse_version(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		));
 	}
 
-	Ok(Command::Version)
+	Ok(Command::Client(
+		ClientCommand::Version
+	))
 }
 
 fn parse_get(tokens: &Vec<String>) -> Result<Command, CommandError> {
@@ -151,7 +164,9 @@ fn parse_get(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		));
 	}
 
-	Ok(Command::Get(tokens[1].clone()))
+	Ok(Command::Client(
+		ClientCommand::Get(tokens[1].clone())
+	))
 }
 
 fn parse_set(tokens: &Vec<String>) -> Result<Command, CommandError> {
@@ -180,10 +195,12 @@ fn parse_set(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		value => Some(value),
 	};
 
-	Ok(Command::Set(
-		tokens[1].clone(),
-		tokens[2].clone(),
-		ttl,
+	Ok(Command::Client(
+		ClientCommand::Set(
+			tokens[1].clone(),
+			tokens[2].clone(),
+			ttl,
+		)
 	))
 }
 
@@ -195,7 +212,9 @@ fn parse_del(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		));
 	}
 
-	Ok(Command::Del(tokens[1].clone()))
+	Ok(Command::Client(
+		ClientCommand::Del(tokens[1].clone())
+	))
 }
 
 fn parse_wipe(tokens: &Vec<String>) -> Result<Command, CommandError> {
@@ -206,7 +225,9 @@ fn parse_wipe(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		));
 	}
 
-	Ok(Command::Wipe)
+	Ok(Command::Client(
+		ClientCommand::Wipe
+	))
 }
 
 fn parse_resize(tokens: &Vec<String>) -> Result<Command, CommandError> {
@@ -218,7 +239,9 @@ fn parse_resize(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	}
 
 	match parse_size(tokens[1..].join(" ")) {
-		Ok(size) => Ok(Command::Resize(size)),
+		Ok(size) => Ok(Command::Client(
+			ClientCommand::Resize(size)
+		)),
 
 		Err(_) => Err(CommandError::new(
 			ErrorKind::InvalidCacheSize,
@@ -247,7 +270,9 @@ fn parse_policy(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		}
 	};
 
-	Ok(Command::Policy(policy))
+	Ok(Command::Client(
+		ClientCommand::Policy(policy)
+	))
 }
 
 fn parse_stats(tokens: &Vec<String>) -> Result<Command, CommandError> {
@@ -258,5 +283,7 @@ fn parse_stats(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		));
 	}
 
-	Ok(Command::Stats)
+	Ok(Command::Client(
+		ClientCommand::Stats
+	))
 }

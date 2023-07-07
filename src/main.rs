@@ -4,6 +4,7 @@ mod command;
 use clap::Parser;
 use paper_core::error::PaperError;
 use paper_client::PaperClient;
+use crate::command::{Command, ClientCommand, CliCommand};
 use crate::command::parser::CommandParser;
 use crate::command::error::ErrorKind;
 
@@ -34,30 +35,70 @@ async fn main() {
 
 	while parser.reading() {
 		match parser.read() {
-			Ok(command) => {
-				match command.send(&client).await {
-					Ok(response) => {
-						if response.is_ok() {
-							println!("\x1B[33mOk\x1B[0m: {}", response.data());
-						} else {
-							println!("\x1B[31mErr\x1B[0m: {}", response.data());
-						}
-					},
-
-					Err(err) => {
-						println!("\x1B[31mErr\x1B[0m: {}", err.message());
-					},
-				}
-			},
+			Ok(command) => handle_command(
+				&command,
+				&client,
+				&mut parser
+			).await,
 
 			Err(err) => {
 				if *err.kind() == ErrorKind::Disconnected {
 					println!("{}", err.message());
-					break;
 				} else {
-					println!("\x1B[31mErr\x1B[0m: {}", err.message())
+					println!("\x1B[31mErr\x1B[0m: {}", err.message());
 				}
 			},
 		}
+	}
+}
+
+async fn handle_command(
+	command: &Command,
+	client: &PaperClient,
+	parser: &mut CommandParser
+) {
+	match command {
+		Command::Client(client_command) => handle_client_command(
+			&client_command,
+			client
+		).await,
+
+		Command::Cli(cli_command) => handle_cli_command(
+			&cli_command,
+			parser
+		),
+	}
+}
+
+async fn handle_client_command(
+	command: &ClientCommand,
+	client: &PaperClient
+) {
+	match command.send(&client).await {
+		Ok(response) => {
+			if response.is_ok() {
+				println!("\x1B[33mOk\x1B[0m: {}", response.data());
+			} else {
+				println!("\x1B[31mErr\x1B[0m: {}", response.data());
+			}
+		},
+
+		Err(err) => {
+			println!("\x1B[31mErr\x1B[0m: {}", err.message());
+		},
+	}
+}
+
+fn handle_cli_command(
+	command: &CliCommand,
+	parser: &mut CommandParser
+) {
+	if command.is_quit() {
+		parser.close();
+		return;
+	}
+
+	if let Err(err) = command.run() {
+		println!("\x1B[31mErr\x1B[0m: {}", err.message());
 	}
 }
