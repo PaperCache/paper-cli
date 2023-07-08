@@ -262,6 +262,7 @@ fn parse_policy(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		"lfu" => Policy::Lfu,
 		"lru" => Policy::Lru,
 		"mru" => Policy::Mru,
+		"fifo" => Policy::Fifo,
 
 		_ => {
 			return Err(CommandError::new(
