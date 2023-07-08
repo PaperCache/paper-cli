@@ -259,6 +259,7 @@ fn parse_policy(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	}
 
 	let policy = match tokens[1].as_str() {
+		"lfu" => Policy::Lfu,
 		"lru" => Policy::Lru,
 		"mru" => Policy::Mru,
 
