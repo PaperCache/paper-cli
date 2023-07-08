@@ -69,13 +69,19 @@ impl ClientCommand {
 					stats.get_policy().id()
 				);
 
+				let uptime = format!(
+					"uptime:\t\t{}",
+					fmt::timespan(stats.get_uptime())
+				);
+
 				let stats_string = format!(
-					"paper stats\n{}\n{}\n{}\n{}\n{}",
+					"paper stats\n{}\n{}\n{}\n{}\n{}\n{}",
 					max_size_output,
 					used_size_output,
 					total_gets_output,
 					miss_ratio_output,
-					policy_output
+					policy_output,
+					uptime
 				);
 
 				Ok(PaperClientResponse::new(
