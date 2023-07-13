@@ -2,7 +2,7 @@ mod line_reader;
 mod command;
 
 use clap::Parser;
-use paper_core::error::PaperError;
+use paper_utils::error::PaperError;
 use paper_client::PaperClient;
 use crate::command::{Command, ClientCommand, CliCommand};
 use crate::command::parser::CommandParser;
@@ -18,11 +18,10 @@ struct Args {
 	port: u32,
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
 	let args = Args::parse();
 
-	let client = match PaperClient::new(&args.host, &args.port).await {
+	let mut client = match PaperClient::new(&args.host, args.port) {
 		Ok(client) => client,
 
 		Err(_) => {
@@ -37,9 +36,9 @@ async fn main() {
 		match parser.read() {
 			Ok(command) => handle_command(
 				&command,
-				&client,
+				&mut client,
 				&mut parser
-			).await,
+			),
 
 			Err(err) => {
 				if *err.kind() == ErrorKind::Disconnected {
@@ -52,16 +51,16 @@ async fn main() {
 	}
 }
 
-async fn handle_command(
+fn handle_command(
 	command: &Command,
-	client: &PaperClient,
+	client: &mut PaperClient,
 	parser: &mut CommandParser
 ) {
 	match command {
 		Command::Client(client_command) => handle_client_command(
 			&client_command,
 			client
-		).await,
+		),
 
 		Command::Cli(cli_command) => handle_cli_command(
 			&cli_command,
@@ -70,11 +69,11 @@ async fn handle_command(
 	}
 }
 
-async fn handle_client_command(
+fn handle_client_command(
 	command: &ClientCommand,
-	client: &PaperClient
+	client: &mut PaperClient
 ) {
-	match command.send(&client).await {
+	match command.send(client) {
 		Ok(response) => {
 			if response.is_ok() {
 				println!("\x1B[33mOk\x1B[0m: {}", response.data());

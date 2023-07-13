@@ -24,22 +24,22 @@ pub enum ClientCommand {
 }
 
 impl ClientCommand {
-	pub async fn send(&self, client: &PaperClient) -> Result<PaperClientResponse, PaperClientError> {
+	pub fn send(&self, client: &mut PaperClient) -> Result<PaperClientResponse, PaperClientError> {
 		match self {
-			ClientCommand::Ping => client.ping().await,
-			ClientCommand::Version => client.version().await,
+			ClientCommand::Ping => client.ping(),
+			ClientCommand::Version => client.version(),
 
-			ClientCommand::Get(key) => client.get(key).await,
-			ClientCommand::Set(key, value, ttl) => client.set(key, value, ttl).await,
-			ClientCommand::Del(key) => client.del(key).await,
+			ClientCommand::Get(key) => client.get(key),
+			ClientCommand::Set(key, value, ttl) => client.set(key, value, *ttl),
+			ClientCommand::Del(key) => client.del(key),
 
-			ClientCommand::Wipe => client.wipe().await,
+			ClientCommand::Wipe => client.wipe(),
 
-			ClientCommand::Resize(size) => client.resize(size).await,
-			ClientCommand::Policy(policy) => client.policy(policy).await,
+			ClientCommand::Resize(size) => client.resize(*size),
+			ClientCommand::Policy(policy) => client.policy(*policy),
 
 			ClientCommand::Stats => {
-				let stats_response = client.stats().await?;
+				let stats_response = client.stats()?;
 				let stats = stats_response.data();
 
 				let max_size_output = format!(
