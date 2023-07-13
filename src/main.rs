@@ -30,7 +30,7 @@ fn main() {
 		},
 	};
 
-	let mut parser = CommandParser::new(&args.host, &args.port);
+	let mut parser = CommandParser::new(&args.host, args.port);
 
 	while parser.reading() {
 		match parser.read() {

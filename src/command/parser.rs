@@ -13,7 +13,7 @@ pub struct CommandParser {
 }
 
 impl CommandParser {
-	pub fn new(host: &str, port: &u32) -> Self {
+	pub fn new(host: &str, port: u32) -> Self {
 		let prompt = format!("\x1B[32m{}:{:0>4}\x1B[0m> ", host, port);
 		let mut line_reader = LineReader::new(prompt);
 
