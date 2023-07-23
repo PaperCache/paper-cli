@@ -4,9 +4,14 @@ mod command;
 use clap::Parser;
 use paper_utils::error::PaperError;
 use paper_client::PaperClient;
-use crate::command::{Command, ClientCommand, CliCommand};
-use crate::command::parser::CommandParser;
-use crate::command::error::ErrorKind;
+
+use crate::command::{
+    Command,
+    ClientCommand,
+    CliCommand,
+    parser::CommandParser,
+    error::ErrorKind,
+};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]

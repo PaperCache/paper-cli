@@ -3,13 +3,28 @@ mod line;
 mod history;
 mod hinter;
 
-use std::io;
-use std::io::{Write, Stdout};
-use crossterm::terminal;
-use crossterm::event::{read as crossterm_read, Event, KeyEvent, KeyCode, KeyModifiers};
-use crate::line_reader::history::History;
-use crate::line_reader::hinter::Hinter;
-use crate::line_reader::line::Line;
+use std::{
+    io,
+    io::{Write, Stdout},
+};
+
+use crossterm::{
+    terminal,
+    event::{
+        read as crossterm_read,
+        Event,
+        KeyEvent,
+        KeyCode,
+        KeyModifiers
+    },
+};
+
+use crate::line_reader::{
+    history::History,
+    hinter::Hinter,
+    line::Line,
+};
+
 pub use crate::line_reader::error::{LineReaderError, ErrorKind};
 
 pub struct LineReader {

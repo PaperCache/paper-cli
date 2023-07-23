@@ -1,9 +1,12 @@
 use regex::Regex;
 use parse_size::parse_size;
 use paper_client::Policy;
-use crate::command::{Command, ClientCommand, CliCommand};
-use crate::command::error::{CommandError, ErrorKind};
-use crate::line_reader::{LineReader, ErrorKind as LineReaderErrorKind};
+
+use crate::{
+    command::{Command, ClientCommand, CliCommand},
+    command::error::{CommandError, ErrorKind},
+    line_reader::{LineReader, ErrorKind as LineReaderErrorKind},
+};
 
 pub struct CommandParser {
 	line_reader: LineReader,
