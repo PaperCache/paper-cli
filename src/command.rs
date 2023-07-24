@@ -4,8 +4,8 @@ pub mod client;
 pub mod cli;
 
 pub use crate::command::{
-    client::ClientCommand,
-    cli::CliCommand,
+	client::ClientCommand,
+	cli::CliCommand,
 };
 
 pub enum Command {

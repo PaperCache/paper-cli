@@ -3,9 +3,9 @@ use parse_size::parse_size;
 use paper_client::Policy;
 
 use crate::{
-    command::{Command, ClientCommand, CliCommand},
-    command::error::{CommandError, ErrorKind},
-    line_reader::{LineReader, ErrorKind as LineReaderErrorKind},
+	command::{Command, ClientCommand, CliCommand},
+	command::error::{CommandError, ErrorKind},
+	line_reader::{LineReader, ErrorKind as LineReaderErrorKind},
 };
 
 pub struct CommandParser {

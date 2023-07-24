@@ -6,11 +6,11 @@ use paper_utils::error::PaperError;
 use paper_client::PaperClient;
 
 use crate::command::{
-    Command,
-    ClientCommand,
-    CliCommand,
-    parser::CommandParser,
-    error::ErrorKind,
+	Command,
+	ClientCommand,
+	CliCommand,
+	parser::CommandParser,
+	error::ErrorKind,
 };
 
 #[derive(Parser)]
