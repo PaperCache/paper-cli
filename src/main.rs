@@ -63,12 +63,12 @@ fn handle_command(
 ) {
 	match command {
 		Command::Client(client_command) => handle_client_command(
-			&client_command,
+			client_command,
 			client
 		),
 
 		Command::Cli(cli_command) => handle_cli_command(
-			&cli_command,
+			cli_command,
 			parser
 		),
 	}

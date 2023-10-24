@@ -14,6 +14,7 @@ pub enum ClientCommand {
 	Get(String),
 	Set(String, String, Option<u32>),
 	Del(String),
+	Peek(String),
 
 	Wipe,
 
@@ -32,6 +33,7 @@ impl ClientCommand {
 			ClientCommand::Get(key) => client.get(key),
 			ClientCommand::Set(key, value, ttl) => client.set(key, value, *ttl),
 			ClientCommand::Del(key) => client.del(key),
+			ClientCommand::Peek(key) => client.peek(key),
 
 			ClientCommand::Wipe => client.wipe(),
 

@@ -9,10 +9,7 @@ pub enum CliCommand {
 
 impl CliCommand {
 	pub fn is_quit(&self) -> bool {
-		match self {
-			CliCommand::Quit => true,
-			_ => false,
-		}
+		matches!(self, CliCommand::Quit)
 	}
 
 	pub fn run(&self) -> Result<(), CommandError> {
