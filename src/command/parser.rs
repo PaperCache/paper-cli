@@ -26,6 +26,8 @@ impl CommandParser {
 		line_reader.register_hint("get <key>");
 		line_reader.register_hint("set <key> <value> [ttl]");
 		line_reader.register_hint("del <key>");
+
+		line_reader.register_hint("has <key>");
 		line_reader.register_hint("peek <key>");
 
 		line_reader.register_hint("wipe");
@@ -115,6 +117,8 @@ fn parse_command(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		"get" => parse_get(tokens),
 		"set" => parse_set(tokens),
 		"del" => parse_del(tokens),
+
+		"has" => parse_has(tokens),
 		"peek" => parse_peek(tokens),
 
 		"wipe" => parse_wipe(tokens),
@@ -223,6 +227,19 @@ fn parse_del(tokens: &Vec<String>) -> Result<Command, CommandError> {
 
 	Ok(Command::Client(
 		ClientCommand::Del(tokens[1].clone())
+	))
+}
+
+fn parse_has(tokens: &Vec<String>) -> Result<Command, CommandError> {
+	if tokens.len() != 2 {
+		return Err(CommandError::new(
+			ErrorKind::InvalidArguments,
+			"Invalid arguments for <has> command."
+		));
+	}
+
+	Ok(Command::Client(
+		ClientCommand::Has(tokens[1].clone())
 	))
 }
 

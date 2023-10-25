@@ -14,6 +14,8 @@ pub enum ClientCommand {
 	Get(String),
 	Set(String, String, Option<u32>),
 	Del(String),
+
+	Has(String),
 	Peek(String),
 
 	Wipe,
@@ -33,6 +35,16 @@ impl ClientCommand {
 			ClientCommand::Get(key) => client.get(key),
 			ClientCommand::Set(key, value, ttl) => client.set(key, value, *ttl),
 			ClientCommand::Del(key) => client.del(key),
+
+			ClientCommand::Has(key) => {
+				let has_response = client.has(key)?;
+
+				Ok(PaperClientResponse::new(
+					has_response.is_ok(),
+					format!("{}", has_response.data()),
+				))
+			},
+
 			ClientCommand::Peek(key) => client.peek(key),
 
 			ClientCommand::Wipe => client.wipe(),
