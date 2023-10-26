@@ -43,7 +43,7 @@ impl CommandParser {
 
 		CommandParser {
 			line_reader,
-			regex: Regex::new(r#""([^"]+)"|(\S+)"#).unwrap(),
+			regex: Regex::new(r#""((\\"|[^"])*)"|(\S+)"#).unwrap(),
 
 			reading: true,
 		}
@@ -90,7 +90,7 @@ impl CommandParser {
 			if let Some(token) = capture.get(0) {
 				let token = token
 					.as_str()
-					.trim_matches('\"');
+					.trim_matches('"');
 
 				tokens.push(token.to_string());
 			}
