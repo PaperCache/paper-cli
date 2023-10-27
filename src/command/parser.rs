@@ -10,7 +10,9 @@ use crate::{
 
 pub struct CommandParser {
 	line_reader: LineReader,
-	regex: Regex,
+
+	tokenizer: Regex,
+	escaped_quote: Regex,
 
 	reading: bool,
 }
@@ -43,7 +45,9 @@ impl CommandParser {
 
 		CommandParser {
 			line_reader,
-			regex: Regex::new(r#""((\\"|[^"])*)"|(\S+)"#).unwrap(),
+
+			tokenizer: Regex::new(r#""((\\"|[^"])*)"|(\S+)"#).unwrap(),
+			escaped_quote: Regex::new(r#"\\""#).unwrap(),
 
 			reading: true,
 		}
@@ -86,11 +90,19 @@ impl CommandParser {
 	fn parse_line(&self, line: &str) -> Result<Vec<String>, CommandError> {
 		let mut tokens: Vec<String> = Vec::new();
 
-		for capture in self.regex.captures_iter(line) {
+		for capture in self.tokenizer.captures_iter(line) {
 			if let Some(token) = capture.get(0) {
-				let token = token
-					.as_str()
-					.trim_matches('"');
+				let mut token = token.as_str().trim_start_matches('"');
+
+				while token.ends_with('"') && !token.ends_with("\\\"") {
+					let mut chars = token.chars();
+					chars.next_back();
+					token = chars.as_str();
+				}
+
+				let token = self.escaped_quote
+					.replace_all(token, "\"")
+					.to_string();
 
 				tokens.push(token.to_string());
 			}
