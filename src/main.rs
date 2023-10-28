@@ -29,8 +29,8 @@ fn main() {
 	let mut client = match PaperClient::new(&args.host, args.port) {
 		Ok(client) => client,
 
-		Err(_) => {
-			println!("\x1B[31mErr\x1B[0m: Could not connect to server.");
+		Err(err) => {
+			println!("\x1B[31mErr\x1B[0m: {}", err.message());
 			return;
 		},
 	};
