@@ -45,7 +45,11 @@ fn main() {
 				Ok(command) => match handle_command(&command, &mut client, &mut parser) {
 					Ok(_) => {},
 
-					Err(err) if *err.kind() == ErrorKind::Interrupted => return,
+					Err(err) if *err.kind() == ErrorKind::Interrupted => {
+						print_note(err.message());
+						return;
+					},
+
 					Err(_) => break,
 				},
 
