@@ -16,6 +16,7 @@ pub enum ErrorKind {
 	InvalidPolicy,
 
 	Disconnected,
+	Interrupted,
 
 	Internal,
 }

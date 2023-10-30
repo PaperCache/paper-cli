@@ -96,14 +96,10 @@ impl Line {
 			self.position + get_prompt_len(prompt) + 1
 		);
 
-		let result = match write_result {
-			Ok(()) => Ok(()),
-
-			Err(_) => Err(LineReaderError::new(
-				ErrorKind::Internal,
-				"Could not write to terminal."
-			)),
-		};
+		let result = write_result.map_err(|_| LineReaderError::new(
+			ErrorKind::Internal,
+			"Could not write to terminal."
+		));
 
 		flush(stdout)?;
 

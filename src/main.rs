@@ -10,7 +10,7 @@ use crate::command::{
 	ClientCommand,
 	CliCommand,
 	parser::CommandParser,
-	error::ErrorKind,
+	error::{CommandError, ErrorKind},
 };
 
 #[derive(Parser)]
@@ -26,32 +26,36 @@ struct Args {
 fn main() {
 	let args = Args::parse();
 
-	let mut client = match PaperClient::new(&args.host, args.port) {
-		Ok(client) => client,
+	loop {
+		print_note("Connecting to server.");
 
-		Err(err) => {
-			println!("\x1B[31mErr\x1B[0m: {}", err.message());
-			return;
-		},
-	};
-
-	let mut parser = CommandParser::new(&args.host, args.port);
-
-	while parser.reading() {
-		match parser.read() {
-			Ok(command) => handle_command(
-				&command,
-				&mut client,
-				&mut parser
-			),
+		let mut client = match PaperClient::new(&args.host, args.port) {
+			Ok(client) => client,
 
 			Err(err) => {
-				if *err.kind() == ErrorKind::Disconnected {
-					println!("{}", err.message());
-				} else {
-					println!("\x1B[31mErr\x1B[0m: {}", err.message());
-				}
+				print_err(err.message());
+				return;
 			},
+		};
+
+		let mut parser = CommandParser::new(&args.host, args.port);
+
+		while parser.reading() {
+			match parser.read() {
+				Ok(command) => match handle_command(&command, &mut client, &mut parser) {
+					Ok(_) => {},
+
+					Err(err) if *err.kind() == ErrorKind::Interrupted => return,
+					Err(_) => break,
+				},
+
+				Err(err) if *err.kind() == ErrorKind::Interrupted => {
+					print_note(err.message());
+					return;
+				},
+
+				Err(err) => print_err(err.message()),
+			}
 		}
 	}
 }
@@ -60,7 +64,7 @@ fn handle_command(
 	command: &Command,
 	client: &mut PaperClient,
 	parser: &mut CommandParser
-) {
+) -> Result<(), CommandError> {
 	match command {
 		Command::Client(client_command) => handle_client_command(
 			client_command,
@@ -77,32 +81,52 @@ fn handle_command(
 fn handle_client_command(
 	command: &ClientCommand,
 	client: &mut PaperClient
-) {
+) -> Result<(), CommandError> {
 	match command.send(client) {
-		Ok(response) => {
-			if response.is_ok() {
-				println!("\x1B[33mOk\x1B[0m: {}", response.data());
-			} else {
-				println!("\x1B[31mErr\x1B[0m: {}", response.data());
-			}
-		},
+		Ok(response) if response.is_ok() => print_ok(response.data()),
+		Ok(response) => print_err(response.data()),
 
 		Err(err) => {
-			println!("\x1B[31mErr\x1B[0m: {}", err.message());
+			print_err(err.message());
+
+			return Err(CommandError::new(
+				ErrorKind::Disconnected,
+				"Disconnected."
+			));
 		},
 	}
+
+	Ok(())
 }
 
 fn handle_cli_command(
 	command: &CliCommand,
 	parser: &mut CommandParser
-) {
+) -> Result<(), CommandError> {
 	if command.is_quit() {
 		parser.close();
-		return;
+
+		return Err(CommandError::new(
+			ErrorKind::Interrupted,
+			"Closing connection."
+		));
 	}
 
 	if let Err(err) = command.run() {
-		println!("\x1B[31mErr\x1B[0m: {}", err.message());
+		print_err(err.message());
 	}
+
+	Ok(())
+}
+
+fn print_ok(message: &str) {
+	println!("\x1B[33mOk\x1B[0m: {}", message);
+}
+
+fn print_err(message: &str) {
+	println!("\x1B[31mErr\x1B[0m: {}", message);
+}
+
+fn print_note(message: &str) {
+	println!("\x1B[36mNote\x1B[0m: {}", message);
 }

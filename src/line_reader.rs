@@ -86,14 +86,6 @@ impl LineReader {
 					line.insert(c);
 				},
 
-				ReadEvent::Backspace => {
-					line.erase_left();
-				},
-
-				ReadEvent::Delete => {
-					line.erase_right();
-				},
-
 				ReadEvent::Tab => {
 					if let Some(hint) = partial_hint {
 						line.concat(hint);
@@ -110,16 +102,6 @@ impl LineReader {
 					break;
 				},
 
-				ReadEvent::Closed => {
-					clear(&mut stdout)?;
-					disable_raw_mode()?;
-
-					return Err(LineReaderError::new(
-						ErrorKind::Closed,
-						"Connection to terminal closed."
-					));
-				},
-
 				ReadEvent::UpArrow => {
 					if let Some(command) = self.history.prev() {
 						line.set(command);
@@ -133,23 +115,29 @@ impl LineReader {
 					};
 				},
 
-				ReadEvent::RightArrow => {
-					line.move_right();
-				},
-
-				ReadEvent::LeftArrow => {
-					line.move_left();
-				},
-
-				ReadEvent::Home => {
-					line.move_start();
-				},
-
-				ReadEvent::End => {
-					line.move_end();
-				},
-
+				ReadEvent::Backspace => line.erase_left(),
+				ReadEvent::Delete => line.erase_right(),
+				ReadEvent::RightArrow => line.move_right(),
+				ReadEvent::LeftArrow => line.move_left(),
+				ReadEvent::Home => line.move_start(),
+				ReadEvent::End => line.move_end(),
 				ReadEvent::Skip => {},
+
+				ReadEvent::Closed => {
+					line.insert('^');
+					line.insert('C');
+
+					let full_hint = self.hinter.get_full_hint(&line);
+					line.write(&mut stdout, &self.prompt, full_hint)?;
+
+					clear(&mut stdout)?;
+					disable_raw_mode()?;
+
+					return Err(LineReaderError::new(
+						ErrorKind::Closed,
+						"Connection to terminal closed."
+					));
+				},
 			}
 
 			let full_hint = self.hinter.get_full_hint(&line);
@@ -210,14 +198,10 @@ fn event() -> ReadEvent {
 }
 
 fn clear(stdout: &mut Stdout) -> Result<(), LineReaderError> {
-	let write_result = match write!(stdout, "\n\r") {
-		Ok(()) => Ok(()),
-
-		Err(_) => Err(LineReaderError::new(
-			ErrorKind::Internal,
-			"Could not write to terminal."
-		)),
-	};
+	let write_result = write!(stdout, "\n\r").map_err(|_| LineReaderError::new(
+		ErrorKind::Internal,
+		"Could not write to terminal."
+	));
 
 	flush(stdout)?;
 
@@ -225,14 +209,10 @@ fn clear(stdout: &mut Stdout) -> Result<(), LineReaderError> {
 }
 
 pub fn flush(stdout: &mut Stdout) -> Result<(), LineReaderError> {
-	match stdout.flush() {
-		Ok(()) => Ok(()),
-
-		Err(_) => Err(LineReaderError::new(
-			ErrorKind::Internal,
-			"Could not flush terminal."
-		)),
-	}
+	stdout.flush().map_err(|_| LineReaderError::new(
+		ErrorKind::Internal,
+		"Could not flush terminal."
+	))
 }
 
 fn is_ctrl_c(key_event: KeyEvent) -> bool {

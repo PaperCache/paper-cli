@@ -33,9 +33,7 @@ impl CliCommand {
 				}
 			},
 
-			CliCommand::Quit => {
-				Ok(())
-			},
+			CliCommand::Quit => Ok(()),
 		}
 	}
 }

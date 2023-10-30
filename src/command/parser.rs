@@ -69,7 +69,7 @@ impl CommandParser {
 				self.reading = false;
 
 				return Err(CommandError::new(
-					ErrorKind::Disconnected,
+					ErrorKind::Interrupted,
 					"Closing connection."
 				));
 			},
@@ -77,7 +77,7 @@ impl CommandParser {
 			Err(_) => {
 				return Err(CommandError::new(
 					ErrorKind::InvalidCommand,
-					"Command not recognized"
+					"Command not recognized."
 				));
 			}
 		};
