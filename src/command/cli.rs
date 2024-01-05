@@ -1,6 +1,6 @@
 use std::io;
 use crossterm::{execute, terminal, cursor};
-use crate::command::error::{CommandError, ErrorKind};
+use crate::command::error::CommandError;
 
 pub enum CliCommand {
 	Clear,
@@ -25,11 +25,7 @@ impl CliCommand {
 
 				match result {
 					Ok(_) => Ok(()),
-
-					Err(_) => Err(CommandError::new(
-						ErrorKind::Internal,
-						"Could not clear terminal."
-					)),
+					Err(_) => Err(CommandError::Internal),
 				}
 			},
 

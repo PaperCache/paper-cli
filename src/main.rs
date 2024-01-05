@@ -2,7 +2,6 @@ mod line_reader;
 mod command;
 
 use clap::Parser;
-use paper_utils::error::PaperError;
 use paper_client::PaperClient;
 
 use crate::command::{
@@ -10,7 +9,7 @@ use crate::command::{
 	ClientCommand,
 	CliCommand,
 	parser::CommandParser,
-	error::{CommandError, ErrorKind},
+	error::CommandError,
 };
 
 #[derive(Parser)]
@@ -33,7 +32,7 @@ fn main() {
 			Ok(client) => client,
 
 			Err(err) => {
-				print_err(err.message());
+				print_err(&err.to_string());
 				return;
 			},
 		};
@@ -45,20 +44,20 @@ fn main() {
 				Ok(command) => match handle_command(&command, &mut client, &mut parser) {
 					Ok(_) => {},
 
-					Err(err) if *err.kind() == ErrorKind::Interrupted => {
-						print_note(err.message());
+					Err(err) if err == CommandError::Interrupted => {
+						print_note(&err.to_string());
 						return;
 					},
 
 					Err(_) => break,
 				},
 
-				Err(err) if *err.kind() == ErrorKind::Interrupted => {
-					print_note(err.message());
+				Err(err) if err == CommandError::Interrupted => {
+					print_note(&err.to_string());
 					return;
 				},
 
-				Err(err) => print_err(err.message()),
+				Err(err) => print_err(&err.to_string()),
 			}
 		}
 	}
@@ -91,12 +90,8 @@ fn handle_client_command(
 		Ok(response) => print_err(response.data()),
 
 		Err(err) => {
-			print_err(err.message());
-
-			return Err(CommandError::new(
-				ErrorKind::Disconnected,
-				"Disconnected."
-			));
+			print_err(&err.to_string());
+			return Err(CommandError::Disconnected);
 		},
 	}
 
@@ -109,15 +104,11 @@ fn handle_cli_command(
 ) -> Result<(), CommandError> {
 	if command.is_quit() {
 		parser.close();
-
-		return Err(CommandError::new(
-			ErrorKind::Interrupted,
-			"Closing connection."
-		));
+		return Err(CommandError::Interrupted);
 	}
 
 	if let Err(err) = command.run() {
-		print_err(err.message());
+		print_err(&err.to_string());
 	}
 
 	Ok(())

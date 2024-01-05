@@ -4,8 +4,8 @@ use paper_client::Policy;
 
 use crate::{
 	command::{Command, ClientCommand, CliCommand},
-	command::error::{CommandError, ErrorKind},
-	line_reader::{LineReader, ErrorKind as LineReaderErrorKind},
+	command::error::CommandError,
+	line_reader::{LineReader, LineReaderError},
 };
 
 pub struct CommandParser {
@@ -65,21 +65,12 @@ impl CommandParser {
 		let tokens = match self.line_reader.read() {
 			Ok(line) => self.parse_line(&line)?,
 
-			Err(err) if err.kind() == &LineReaderErrorKind::Closed => {
+			Err(LineReaderError::Closed) => {
 				self.reading = false;
-
-				return Err(CommandError::new(
-					ErrorKind::Interrupted,
-					"Closing connection."
-				));
+				return Err(CommandError::Interrupted);
 			},
 
-			Err(_) => {
-				return Err(CommandError::new(
-					ErrorKind::InvalidCommand,
-					"Command not recognized."
-				));
-			}
+			Err(_) => return Err(CommandError::InvalidCommand),
 		};
 
 		let command = parse_command(&tokens)?;
@@ -109,10 +100,7 @@ impl CommandParser {
 		}
 
 		if tokens.is_empty() {
-			return Err(CommandError::new(
-				ErrorKind::EmptyCommand,
-				"Please enter a command."
-			));
+			return Err(CommandError::EmptyCommand);
 		}
 
 		tokens[0].make_ascii_lowercase();
@@ -121,7 +109,7 @@ impl CommandParser {
 	}
 }
 
-fn parse_command(tokens: &Vec<String>) -> Result<Command, CommandError> {
+fn parse_command(tokens: &[String]) -> Result<Command, CommandError> {
 	match tokens[0].as_str() {
 		"ping" => parse_ping(tokens),
 		"version" => parse_version(tokens),
@@ -148,19 +136,13 @@ fn parse_command(tokens: &Vec<String>) -> Result<Command, CommandError> {
 			CliCommand::Quit
 		)),
 
-		_ => Err(CommandError::new(
-			ErrorKind::InvalidCommand,
-			"Command not recognized."
-		))
+		_ => Err(CommandError::InvalidCommand),
 	}
 }
 
-fn parse_ping(tokens: &Vec<String>) -> Result<Command, CommandError> {
+fn parse_ping(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() != 1 {
-		return Err(CommandError::new(
-			ErrorKind::InvalidArguments,
-			"Invalid arguments for <ping> command."
-		));
+		return Err(CommandError::InvalidArguments("ping"));
 	}
 
 	Ok(Command::Client(
@@ -168,12 +150,9 @@ fn parse_ping(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	))
 }
 
-fn parse_version(tokens: &Vec<String>) -> Result<Command, CommandError> {
+fn parse_version(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() != 1 {
-		return Err(CommandError::new(
-			ErrorKind::InvalidArguments,
-			"Invalid arguments for <version> command."
-		));
+		return Err(CommandError::InvalidArguments("version"));
 	}
 
 	Ok(Command::Client(
@@ -181,12 +160,9 @@ fn parse_version(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	))
 }
 
-fn parse_get(tokens: &Vec<String>) -> Result<Command, CommandError> {
+fn parse_get(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() != 2 {
-		return Err(CommandError::new(
-			ErrorKind::InvalidArguments,
-			"Invalid arguments for <get> command."
-		));
+		return Err(CommandError::InvalidArguments("get"));
 	}
 
 	Ok(Command::Client(
@@ -194,12 +170,9 @@ fn parse_get(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	))
 }
 
-fn parse_set(tokens: &Vec<String>) -> Result<Command, CommandError> {
+fn parse_set(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() < 3 || tokens.len() > 4 {
-		return Err(CommandError::new(
-			ErrorKind::InvalidArguments,
-			"Invalid arguments for <set> command."
-		));
+		return Err(CommandError::InvalidArguments("set"));
 	}
 
 	let ttl_value = if tokens.len() == 4 {
@@ -209,10 +182,7 @@ fn parse_set(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	};
 
 	if ttl_value.is_err() {
-		return Err(CommandError::new(
-			ErrorKind::InvalidTtl,
-			"Invalid TTL."
-		));
+		return Err(CommandError::InvalidTtl);
 	}
 
 	let ttl = match ttl_value.unwrap() {
@@ -229,12 +199,9 @@ fn parse_set(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	))
 }
 
-fn parse_del(tokens: &Vec<String>) -> Result<Command, CommandError> {
+fn parse_del(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() != 2 {
-		return Err(CommandError::new(
-			ErrorKind::InvalidArguments,
-			"Invalid arguments for <del> command."
-		));
+		return Err(CommandError::InvalidArguments("del"));
 	}
 
 	Ok(Command::Client(
@@ -242,12 +209,9 @@ fn parse_del(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	))
 }
 
-fn parse_has(tokens: &Vec<String>) -> Result<Command, CommandError> {
+fn parse_has(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() != 2 {
-		return Err(CommandError::new(
-			ErrorKind::InvalidArguments,
-			"Invalid arguments for <has> command."
-		));
+		return Err(CommandError::InvalidArguments("has"));
 	}
 
 	Ok(Command::Client(
@@ -255,12 +219,9 @@ fn parse_has(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	))
 }
 
-fn parse_peek(tokens: &Vec<String>) -> Result<Command, CommandError> {
+fn parse_peek(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() != 2 {
-		return Err(CommandError::new(
-			ErrorKind::InvalidArguments,
-			"Invalid arguments for <peek> command."
-		));
+		return Err(CommandError::InvalidArguments("peek"));
 	}
 
 	Ok(Command::Client(
@@ -268,12 +229,9 @@ fn parse_peek(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	))
 }
 
-fn parse_wipe(tokens: &Vec<String>) -> Result<Command, CommandError> {
+fn parse_wipe(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() != 1 {
-		return Err(CommandError::new(
-			ErrorKind::InvalidArguments,
-			"Invalid arguments for <wipe> command."
-		));
+		return Err(CommandError::InvalidArguments("wipe"));
 	}
 
 	Ok(Command::Client(
@@ -281,12 +239,9 @@ fn parse_wipe(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	))
 }
 
-fn parse_resize(tokens: &Vec<String>) -> Result<Command, CommandError> {
+fn parse_resize(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() < 2 {
-		return Err(CommandError::new(
-			ErrorKind::InvalidArguments,
-			"Invalid arguments for <resize> command."
-		));
+		return Err(CommandError::InvalidArguments("resize"));
 	}
 
 	match parse_size(tokens[1..].join(" ")) {
@@ -294,19 +249,13 @@ fn parse_resize(tokens: &Vec<String>) -> Result<Command, CommandError> {
 			ClientCommand::Resize(size)
 		)),
 
-		Err(_) => Err(CommandError::new(
-			ErrorKind::InvalidCacheSize,
-			"Invalid cache size."
-		)),
+		Err(_) => Err(CommandError::InvalidCacheSize),
 	}
 }
 
-fn parse_policy(tokens: &Vec<String>) -> Result<Command, CommandError> {
+fn parse_policy(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() != 2 {
-		return Err(CommandError::new(
-			ErrorKind::InvalidArguments,
-			"Invalid arguments for <policy> command."
-		));
+		return Err(CommandError::InvalidArguments("policy"));
 	}
 
 	let policy = match tokens[1].as_str() {
@@ -315,12 +264,7 @@ fn parse_policy(tokens: &Vec<String>) -> Result<Command, CommandError> {
 		"lru" => Policy::Lru,
 		"mru" => Policy::Mru,
 
-		_ => {
-			return Err(CommandError::new(
-				ErrorKind::InvalidPolicy,
-				"Invalid policy."
-			));
-		}
+		_ => return Err(CommandError::InvalidPolicy),
 	};
 
 	Ok(Command::Client(
@@ -328,12 +272,9 @@ fn parse_policy(tokens: &Vec<String>) -> Result<Command, CommandError> {
 	))
 }
 
-fn parse_stats(tokens: &Vec<String>) -> Result<Command, CommandError> {
+fn parse_stats(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() != 1 {
-		return Err(CommandError::new(
-			ErrorKind::InvalidArguments,
-			"Invalid arguments for <stats> command."
-		));
+		return Err(CommandError::InvalidArguments("stats"));
 	}
 
 	Ok(Command::Client(

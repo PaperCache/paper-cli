@@ -25,7 +25,7 @@ use crate::line_reader::{
 	line::Line,
 };
 
-pub use crate::line_reader::error::{LineReaderError, ErrorKind};
+pub use crate::line_reader::error::LineReaderError;
 
 pub struct LineReader {
 	prompt: String,
@@ -133,10 +133,7 @@ impl LineReader {
 					clear(&mut stdout)?;
 					disable_raw_mode()?;
 
-					return Err(LineReaderError::new(
-						ErrorKind::Closed,
-						"Connection to terminal closed."
-					));
+					return Err(LineReaderError::Closed);
 				},
 			}
 
@@ -198,21 +195,13 @@ fn event() -> ReadEvent {
 }
 
 fn clear(stdout: &mut Stdout) -> Result<(), LineReaderError> {
-	let write_result = write!(stdout, "\n\r").map_err(|_| LineReaderError::new(
-		ErrorKind::Internal,
-		"Could not write to terminal."
-	));
-
+	let write_result = write!(stdout, "\n\r").map_err(|_| LineReaderError::Internal);
 	flush(stdout)?;
-
 	write_result
 }
 
 pub fn flush(stdout: &mut Stdout) -> Result<(), LineReaderError> {
-	stdout.flush().map_err(|_| LineReaderError::new(
-		ErrorKind::Internal,
-		"Could not flush terminal."
-	))
+	stdout.flush().map_err(|_| LineReaderError::Internal)
 }
 
 fn is_ctrl_c(key_event: KeyEvent) -> bool {
@@ -223,21 +212,13 @@ fn is_ctrl_c(key_event: KeyEvent) -> bool {
 fn enable_raw_mode() -> Result<(), LineReaderError> {
 	match terminal::enable_raw_mode() {
 		Ok(_) => Ok(()),
-
-		Err(_) => Err(LineReaderError::new(
-			ErrorKind::Internal,
-			"Could not enable terminal raw mode."
-		)),
+		Err(_) => Err(LineReaderError::Internal),
 	}
 }
 
 fn disable_raw_mode() -> Result<(), LineReaderError> {
 	match terminal::disable_raw_mode() {
 		Ok(_) => Ok(()),
-
-		Err(_) => Err(LineReaderError::new(
-			ErrorKind::Internal,
-			"Could not disable terminal raw mode."
-		)),
+		Err(_) => Err(LineReaderError::Internal),
 	}
 }

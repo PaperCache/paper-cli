@@ -1,55 +1,31 @@
-use std::{
-	error::Error,
-	fmt::{Display, Formatter},
-};
+use thiserror::Error;
 
-pub use paper_utils::error::PaperError;
-
-#[derive(PartialEq, Debug)]
-pub enum ErrorKind {
+#[derive(Debug, PartialEq, Error)]
+pub enum CommandError {
+	#[error("Please enter a command.")]
 	EmptyCommand,
 
+	#[error("Command not recognized.")]
 	InvalidCommand,
-	InvalidArguments,
+
+	#[error("Invalid arguments for <{0}> command.")]
+	InvalidArguments(&'static str),
+
+	#[error("Invalid cache size.")]
 	InvalidCacheSize,
+
+	#[error("Invalid TTL.")]
 	InvalidTtl,
+
+	#[error("Invalid policy.")]
 	InvalidPolicy,
 
+	#[error("Disconnected.")]
 	Disconnected,
+
+	#[error("Closing connection.")]
 	Interrupted,
 
+	#[error("Internal error.")]
 	Internal,
-}
-
-#[derive(Debug)]
-pub struct CommandError {
-	kind: ErrorKind,
-	message: String,
-}
-
-impl CommandError {
-	pub fn new(kind: ErrorKind, message: &str) -> Self {
-		CommandError {
-			kind,
-			message: message.to_owned(),
-		}
-	}
-
-	pub fn kind(&self) -> &ErrorKind {
-		&self.kind
-	}
-}
-
-impl PaperError for CommandError {
-	fn message(&self) -> &str {
-		&self.message
-	}
-}
-
-impl Error for CommandError {}
-
-impl Display for CommandError {
-	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-		write!(f, "{}", self.message)
-	}
 }

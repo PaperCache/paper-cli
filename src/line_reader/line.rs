@@ -1,7 +1,10 @@
 use std::io::{Write, Stdout};
 use regex::Regex;
-use crate::line_reader::flush;
-pub use crate::line_reader::error::{LineReaderError, ErrorKind};
+
+use crate::line_reader::{
+	flush,
+	error::LineReaderError,
+};
 
 pub struct Line {
 	buf: String,
@@ -96,10 +99,7 @@ impl Line {
 			self.position + get_prompt_len(prompt) + 1
 		);
 
-		let result = write_result.map_err(|_| LineReaderError::new(
-			ErrorKind::Internal,
-			"Could not write to terminal."
-		));
+		let result = write_result.map_err(|_| LineReaderError::Internal);
 
 		flush(stdout)?;
 
