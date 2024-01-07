@@ -20,27 +20,19 @@ impl Hinter {
 			return None;
 		}
 
-		for hint in &self.hints {
-			if hint.starts_with(line.buf()) && hint.len() != line.buf().len() {
-				return Some(&hint[line.buf().len()..]);
-			}
-		}
-
-		None
+		self.hints
+			.iter()
+			.find(|hint| hint.starts_with(line.buf()) && hint.len() != line.buf().len())
+			.map(|hint| &hint[line.buf().len()..])
 	}
 
-	pub fn get_partial_hint(&self, line: &Line) -> Option<&'static str> {
+	pub fn get_partial_hint(&self, line: &Line) -> Option<&str> {
 		match self.get_full_hint(line) {
 			Some(full_hint) => {
-				let tokens = full_hint
+				full_hint
 					.split(' ')
-					.collect::<Vec<&str>>();
-
-				if tokens.is_empty() {
-					return None;
-				}
-
-				Some(tokens[0])
+					.collect::<Vec<&str>>()
+					.first().copied()
 			},
 
 			None => None,
