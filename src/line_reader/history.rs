@@ -44,6 +44,10 @@ impl History {
 	}
 
 	pub fn push(&mut self, line: &Line) {
+		if line.is_empty() {
+			return;
+		}
+
 		let should_push = match self.commands.last() {
 			Some(last_input) => last_input != line.buf(),
 			None => true,

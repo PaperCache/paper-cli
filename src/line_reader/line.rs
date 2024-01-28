@@ -19,6 +19,10 @@ impl Line {
 		}
 	}
 
+	pub fn is_empty(&self) -> bool {
+		self.buf.is_empty()
+	}
+
 	pub fn buf(&self) -> &str {
 		&self.buf
 	}
