@@ -44,6 +44,10 @@ fn main() {
 				Ok(command) => match handle_command(&command, &mut client, &mut parser) {
 					Ok(_) => {},
 
+					Err(err) if err == CommandError::InvalidResponse => {
+						print_err(&err.to_string());
+					},
+
 					Err(err) if err == CommandError::Interrupted => {
 						print_note(&err.to_string());
 						return;
@@ -88,7 +92,7 @@ fn handle_client_command(
 	match command.send(client) {
 		Ok(response) => {
 			let Ok(data) = String::from_utf8(response.data().to_vec()) else {
-				return Err(CommandError::Internal);
+				return Err(CommandError::InvalidResponse);
 			};
 
 			match response.is_ok() {

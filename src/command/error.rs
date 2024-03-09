@@ -20,6 +20,9 @@ pub enum CommandError {
 	#[error("Invalid policy.")]
 	InvalidPolicy,
 
+	#[error("Could not display response data.")]
+	InvalidResponse,
+
 	#[error("Disconnected.")]
 	Disconnected,
 
