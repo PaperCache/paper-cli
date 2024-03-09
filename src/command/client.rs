@@ -41,9 +41,13 @@ impl ClientCommand {
 			ClientCommand::Has(key) => {
 				let has_response = client.has(key)?;
 
+				let data = format!("{}", has_response.data())
+					.into_bytes()
+					.into_boxed_slice();
+
 				Ok(PaperClientResponse::new(
 					has_response.is_ok(),
-					format!("{}", has_response.data()),
+					data,
 				))
 			},
 
@@ -61,43 +65,43 @@ impl ClientCommand {
 				let max_size_output = format!(
 					"max_size:\t{} ({} B)",
 					fmt::memory(stats.get_max_size(), Some(2)),
-					stats.get_max_size()
+					stats.get_max_size(),
 				);
 
 				let used_size_output = format!(
 					"used_size:\t{} ({} B)",
 					fmt::memory(stats.get_used_size(), Some(2)),
-					stats.get_used_size()
+					stats.get_used_size(),
 				);
 
 				let total_gets_output = format!(
 					"total_gets:\t{}",
-					fmt::number(stats.get_total_gets())
+					fmt::number(stats.get_total_gets()),
 				);
 
 				let total_sets_output = format!(
 					"total_sets:\t{}",
-					fmt::number(stats.get_total_sets())
+					fmt::number(stats.get_total_sets()),
 				);
 
 				let total_dels_output = format!(
 					"total_dels:\t{}",
-					fmt::number(stats.get_total_dels())
+					fmt::number(stats.get_total_dels()),
 				);
 
 				let miss_ratio_output = format!(
 					"miss_ratio:\t{:.3}",
-					stats.get_miss_ratio()
+					stats.get_miss_ratio(),
 				);
 
 				let policy_output = format!(
 					"policy:\t\t{}",
-					stats.get_policy().id()
+					stats.get_policy().id(),
 				);
 
 				let uptime = format!(
 					"uptime:\t\t{}",
-					fmt::timespan(stats.get_uptime())
+					fmt::timespan(stats.get_uptime()),
 				);
 
 				let stats_string = format!(
@@ -109,12 +113,16 @@ impl ClientCommand {
 					total_dels_output,
 					miss_ratio_output,
 					policy_output,
-					uptime
+					uptime,
 				);
+
+				let stats_data = stats_string
+					.into_bytes()
+					.into_boxed_slice();
 
 				Ok(PaperClientResponse::new(
 					stats_response.is_ok(),
-					stats_string
+					stats_data,
 				))
 			},
 		}

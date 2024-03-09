@@ -86,8 +86,16 @@ fn handle_client_command(
 	client: &mut PaperClient
 ) -> Result<(), CommandError> {
 	match command.send(client) {
-		Ok(response) if response.is_ok() => print_ok(response.data()),
-		Ok(response) => print_err(response.data()),
+		Ok(response) => {
+			let Ok(data) = String::from_utf8(response.data().to_vec()) else {
+				return Err(CommandError::Internal);
+			};
+
+			match response.is_ok() {
+				true => print_ok(&data),
+				false => print_err(&data),
+			}
+		},
 
 		Err(err) => {
 			print_err(&err.to_string());
