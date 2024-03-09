@@ -175,6 +175,8 @@ fn parse_set(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("set"));
 	}
 
+	let value = tokens[2].clone().into_bytes().into_boxed_slice();
+
 	let ttl_value = if tokens.len() == 4 {
 		tokens[3].parse::<u32>()
 	} else {
@@ -193,7 +195,7 @@ fn parse_set(tokens: &[String]) -> Result<Command, CommandError> {
 	Ok(Command::Client(
 		ClientCommand::Set(
 			tokens[1].clone(),
-			tokens[2].clone(),
+			value,
 			ttl,
 		)
 	))

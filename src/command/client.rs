@@ -1,5 +1,7 @@
 use kwik::fmt;
 
+use paper_utils::stream::Buffer;
+
 use paper_client::{
 	PaperClient,
 	PaperClientResponse,
@@ -12,7 +14,7 @@ pub enum ClientCommand {
 	Version,
 
 	Get(String),
-	Set(String, String, Option<u32>),
+	Set(String, Buffer, Option<u32>),
 	Del(String),
 
 	Has(String),
