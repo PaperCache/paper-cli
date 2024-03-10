@@ -19,6 +19,7 @@ pub enum ClientCommand {
 
 	Has(String),
 	Peek(String),
+	Ttl(String, Option<u32>),
 
 	Wipe,
 
@@ -52,6 +53,7 @@ impl ClientCommand {
 			},
 
 			ClientCommand::Peek(key) => client.peek(key),
+			ClientCommand::Ttl(key, ttl) => client.ttl(key, *ttl),
 
 			ClientCommand::Wipe => client.wipe(),
 

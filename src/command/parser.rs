@@ -31,6 +31,7 @@ impl CommandParser {
 
 		line_reader.register_hint("has <key>");
 		line_reader.register_hint("peek <key>");
+		line_reader.register_hint("ttl <key> [ttl]");
 
 		line_reader.register_hint("wipe");
 
@@ -120,6 +121,7 @@ fn parse_command(tokens: &[String]) -> Result<Command, CommandError> {
 
 		"has" => parse_has(tokens),
 		"peek" => parse_peek(tokens),
+		"ttl" => parse_ttl(tokens),
 
 		"wipe" => parse_wipe(tokens),
 
@@ -228,6 +230,34 @@ fn parse_peek(tokens: &[String]) -> Result<Command, CommandError> {
 
 	Ok(Command::Client(
 		ClientCommand::Peek(tokens[1].clone())
+	))
+}
+
+fn parse_ttl(tokens: &[String]) -> Result<Command, CommandError> {
+	if tokens.len() < 2 || tokens.len() > 3 {
+		return Err(CommandError::InvalidArguments("ttl"));
+	}
+
+	let ttl_value = if tokens.len() == 3 {
+		tokens[2].parse::<u32>()
+	} else {
+		Ok(0)
+	};
+
+	if ttl_value.is_err() {
+		return Err(CommandError::InvalidTtl);
+	}
+
+	let ttl = match ttl_value.unwrap() {
+		0 => None,
+		value => Some(value),
+	};
+
+	Ok(Command::Client(
+		ClientCommand::Ttl(
+			tokens[1].clone(),
+			ttl,
+		)
 	))
 }
 
