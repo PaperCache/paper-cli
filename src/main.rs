@@ -15,10 +15,10 @@ use crate::command::{
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-	#[arg(short, long, default_value = "127.0.0.1")]
+	#[arg(long, default_value = "127.0.0.1")]
 	host: String,
 
-	#[arg(short, long, default_value_t = 3145)]
+	#[arg(long, default_value_t = 3145)]
 	port: u32,
 }
 
