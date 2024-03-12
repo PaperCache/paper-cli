@@ -1,6 +1,6 @@
 [package]
 name = "paper_cli"
-version = "1.2.0"
+version = "1.2.1"
 edition = "2021"
 
 [dependencies]
@@ -8,7 +8,7 @@ regex = "1.8.1"
 fasthash = "0.4.0"
 clap = { version = "4.2.7", features = ["derive"] }
 paper_utils = { git = "ssh://git@github.com/Paper-Book/paper-utils.git", tag = "v1.1.0" }
-paper_client = { git = "ssh://git@github.com/Paper-Book/paper-client-rs.git", tag = "v2.0.0" }
+paper_client = { git = "ssh://git@github.com/Paper-Book/paper-client-rs.git", tag = "v2.0.4" }
 byteorder = "1.4.3"
 kwik = { git = "https://github.com/KiaShakiba/kwik-rs.git", version = "0.1.0" }
 crossterm = "0.26.1"

@@ -2,7 +2,7 @@ mod line_reader;
 mod command;
 
 use clap::Parser;
-use paper_client::PaperClient;
+use paper_client::{PaperClient, PaperClientError};
 
 use crate::command::{
 	Command,
@@ -90,22 +90,20 @@ fn handle_client_command(
 	client: &mut PaperClient
 ) -> Result<(), CommandError> {
 	match command.send(client) {
-		Ok(response) => match response.data() {
-			Ok(data) => {
-				let Ok(data) = String::from_utf8(data.to_vec()) else {
-					return Err(CommandError::InvalidResponse);
-				};
+		Ok(buf) => {
+			let Ok(message) = String::from_utf8(buf.to_vec()) else {
+				return Err(CommandError::InvalidResponse);
+			};
 
-				print_ok(&data)
-			},
-
-			Err(data) => print_err(data),
+			print_ok(&message)
 		},
 
-		Err(err) => {
+		Err(err) if err == PaperClientError::Disconnected => {
 			print_err(&err.to_string());
 			return Err(CommandError::Disconnected);
 		},
+
+		Err(err) => print_err(&err.to_string()),
 	}
 
 	Ok(())

@@ -4,8 +4,7 @@ use paper_utils::stream::Buffer;
 
 use paper_client::{
 	PaperClient,
-	PaperClientResponse,
-	PaperClientError,
+	PaperClientResult,
 	Policy,
 };
 
@@ -31,7 +30,7 @@ pub enum ClientCommand {
 }
 
 impl ClientCommand {
-	pub fn send(&self, client: &mut PaperClient) -> Result<PaperClientResponse, PaperClientError> {
+	pub fn send(&self, client: &mut PaperClient) -> PaperClientResult<Buffer> {
 		match self {
 			ClientCommand::Ping => client.ping(),
 			ClientCommand::Version => client.version(),
@@ -39,33 +38,32 @@ impl ClientCommand {
 			ClientCommand::Get(key) => client.get(key),
 			ClientCommand::Set(key, value, ttl) => client.set(key, value, *ttl),
 			ClientCommand::Del(key) => client.del(key),
-			ClientCommand::Has(key) => Ok(client.has(key)?.into()),
+
+			ClientCommand::Has(key) => {
+				let buf = format!("{}", client.has(key)?)
+					.into_bytes()
+					.into_boxed_slice();
+
+				Ok(buf)
+			},
 
 			ClientCommand::Peek(key) => client.peek(key),
 			ClientCommand::Ttl(key, ttl) => client.ttl(key, *ttl),
 
 			ClientCommand::Size(key) => {
-				let size_response = client.size(key)?;
+				let size = client.size(key)?;
 
-				let size = match size_response.data() {
-					Ok(size) => *size,
-
-					Err(err) => return Ok(PaperClientResponse::new(
-						Err(err.to_owned())
-					)),
-				};
-
-				let size_string = format!(
+				let response = format!(
 					"{} ({} B)",
 					fmt::memory(size, Some(2)),
 					size,
 				);
 
-				let size_data = size_string
+				let buf = response
 					.into_bytes()
 					.into_boxed_slice();
 
-				Ok(PaperClientResponse::new(Ok(size_data)))
+				Ok(buf)
 			},
 
 			ClientCommand::Wipe => client.wipe(),
@@ -74,15 +72,7 @@ impl ClientCommand {
 			ClientCommand::Policy(policy) => client.policy(*policy),
 
 			ClientCommand::Stats => {
-				let stats_response = client.stats()?;
-
-				let stats = match stats_response.data() {
-					Ok(stats) => stats,
-
-					Err(err) => return Ok(PaperClientResponse::new(
-						Err(err.to_owned())
-					)),
-				};
+				let stats = client.stats()?;
 
 				let max_size_output = format!(
 					"max_size:\t{} ({} B)",
@@ -126,7 +116,7 @@ impl ClientCommand {
 					fmt::timespan(stats.get_uptime()),
 				);
 
-				let stats_string = format!(
+				let response = format!(
 					"paper stats\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
 					max_size_output,
 					used_size_output,
@@ -138,11 +128,11 @@ impl ClientCommand {
 					uptime,
 				);
 
-				let stats_data = stats_string
+				let buf = response
 					.into_bytes()
 					.into_boxed_slice();
 
-				Ok(PaperClientResponse::new(Ok(stats_data)))
+				Ok(buf)
 			},
 		}
 	}
