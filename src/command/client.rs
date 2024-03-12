@@ -20,6 +20,7 @@ pub enum ClientCommand {
 	Has(String),
 	Peek(String),
 	Ttl(String, Option<u32>),
+	Size(String),
 
 	Wipe,
 
@@ -38,22 +39,34 @@ impl ClientCommand {
 			ClientCommand::Get(key) => client.get(key),
 			ClientCommand::Set(key, value, ttl) => client.set(key, value, *ttl),
 			ClientCommand::Del(key) => client.del(key),
-
-			ClientCommand::Has(key) => {
-				let has_response = client.has(key)?;
-
-				let data = format!("{}", has_response.data())
-					.into_bytes()
-					.into_boxed_slice();
-
-				Ok(PaperClientResponse::new(
-					has_response.is_ok(),
-					data,
-				))
-			},
+			ClientCommand::Has(key) => Ok(client.has(key)?.into()),
 
 			ClientCommand::Peek(key) => client.peek(key),
 			ClientCommand::Ttl(key, ttl) => client.ttl(key, *ttl),
+
+			ClientCommand::Size(key) => {
+				let size_response = client.size(key)?;
+
+				let size = match size_response.data() {
+					Ok(size) => *size,
+
+					Err(err) => return Ok(PaperClientResponse::new(
+						Err(err.to_owned())
+					)),
+				};
+
+				let size_string = format!(
+					"{} ({} B)",
+					fmt::memory(size, Some(2)),
+					size,
+				);
+
+				let size_data = size_string
+					.into_bytes()
+					.into_boxed_slice();
+
+				Ok(PaperClientResponse::new(Ok(size_data)))
+			},
 
 			ClientCommand::Wipe => client.wipe(),
 
@@ -62,7 +75,14 @@ impl ClientCommand {
 
 			ClientCommand::Stats => {
 				let stats_response = client.stats()?;
-				let stats = stats_response.data();
+
+				let stats = match stats_response.data() {
+					Ok(stats) => stats,
+
+					Err(err) => return Ok(PaperClientResponse::new(
+						Err(err.to_owned())
+					)),
+				};
 
 				let max_size_output = format!(
 					"max_size:\t{} ({} B)",
@@ -122,10 +142,7 @@ impl ClientCommand {
 					.into_bytes()
 					.into_boxed_slice();
 
-				Ok(PaperClientResponse::new(
-					stats_response.is_ok(),
-					stats_data,
-				))
+				Ok(PaperClientResponse::new(Ok(stats_data)))
 			},
 		}
 	}

@@ -1,5 +1,5 @@
 use regex::Regex;
-use parse_size::parse_size;
+use parse_size::parse_size as parse_input_size;
 use paper_client::Policy;
 
 use crate::{
@@ -32,6 +32,7 @@ impl CommandParser {
 		line_reader.register_hint("has <key>");
 		line_reader.register_hint("peek <key>");
 		line_reader.register_hint("ttl <key> [ttl]");
+		line_reader.register_hint("size <key>");
 
 		line_reader.register_hint("wipe");
 
@@ -122,6 +123,7 @@ fn parse_command(tokens: &[String]) -> Result<Command, CommandError> {
 		"has" => parse_has(tokens),
 		"peek" => parse_peek(tokens),
 		"ttl" => parse_ttl(tokens),
+		"size" => parse_size(tokens),
 
 		"wipe" => parse_wipe(tokens),
 
@@ -261,6 +263,16 @@ fn parse_ttl(tokens: &[String]) -> Result<Command, CommandError> {
 	))
 }
 
+fn parse_size(tokens: &[String]) -> Result<Command, CommandError> {
+	if tokens.len() != 2 {
+		return Err(CommandError::InvalidArguments("size"));
+	}
+
+	Ok(Command::Client(
+		ClientCommand::Size(tokens[1].clone())
+	))
+}
+
 fn parse_wipe(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() != 1 {
 		return Err(CommandError::InvalidArguments("wipe"));
@@ -276,7 +288,7 @@ fn parse_resize(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("resize"));
 	}
 
-	match parse_size(tokens[1..].join(" ")) {
+	match parse_input_size(tokens[1..].join(" ")) {
 		Ok(size) => Ok(Command::Client(
 			ClientCommand::Resize(size)
 		)),
