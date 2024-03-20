@@ -88,7 +88,7 @@ impl LineReader {
 
 				ReadEvent::Tab => {
 					if let Some(hint) = partial_hint {
-						match line.is_last_char_uppercase() {
+						match line.is_prev_char_uppercase() {
 							true => line.concat(&hint.to_uppercase()),
 							false => line.concat(hint),
 						}

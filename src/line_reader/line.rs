@@ -23,7 +23,7 @@ impl Line {
 		self.buf.is_empty()
 	}
 
-	pub fn is_last_char_uppercase(&self) -> bool {
+	pub fn is_prev_char_uppercase(&self) -> bool {
 		if self.position == 0 {
 			return false;
 		}
