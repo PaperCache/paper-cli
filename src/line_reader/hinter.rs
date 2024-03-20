@@ -20,9 +20,11 @@ impl Hinter {
 			return None;
 		}
 
+		let line_lowercase = line.buf().to_lowercase();
+
 		self.hints
 			.iter()
-			.find(|hint| hint.starts_with(line.buf()) && hint.len() != line.buf().len())
+			.find(|hint| hint.starts_with(&line_lowercase) && hint.len() != line_lowercase.len())
 			.map(|hint| &hint[line.buf().len()..])
 	}
 
