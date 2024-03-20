@@ -23,6 +23,17 @@ impl Line {
 		self.buf.is_empty()
 	}
 
+	pub fn is_last_char_uppercase(&self) -> bool {
+		if self.position == 0 {
+			return false;
+		}
+
+		self.buf
+			.chars()
+			.nth(self.position - 1)
+			.is_some_and(|c| c.is_uppercase())
+	}
+
 	pub fn buf(&self) -> &str {
 		&self.buf
 	}
