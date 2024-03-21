@@ -25,6 +25,8 @@ impl CommandParser {
 		line_reader.register_hint("ping");
 		line_reader.register_hint("version");
 
+		line_reader.register_hint("auth <token>");
+
 		line_reader.register_hint("get <key>");
 		line_reader.register_hint("set <key> <value> [ttl]");
 		line_reader.register_hint("del <key>");
@@ -116,6 +118,8 @@ fn parse_command(tokens: &[String]) -> Result<Command, CommandError> {
 		"ping" => parse_ping(tokens),
 		"version" => parse_version(tokens),
 
+		"auth" => parse_auth(tokens),
+
 		"get" => parse_get(tokens),
 		"set" => parse_set(tokens),
 		"del" => parse_del(tokens),
@@ -161,6 +165,16 @@ fn parse_version(tokens: &[String]) -> Result<Command, CommandError> {
 
 	Ok(Command::Client(
 		ClientCommand::Version
+	))
+}
+
+fn parse_auth(tokens: &[String]) -> Result<Command, CommandError> {
+	if tokens.len() != 2 {
+		return Err(CommandError::InvalidArguments("auth"));
+	}
+
+	Ok(Command::Client(
+		ClientCommand::Auth(tokens[1].clone())
 	))
 }
 

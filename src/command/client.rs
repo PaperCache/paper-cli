@@ -12,6 +12,8 @@ pub enum ClientCommand {
 	Ping,
 	Version,
 
+	Auth(String),
+
 	Get(String),
 	Set(String, Buffer, Option<u32>),
 	Del(String),
@@ -34,6 +36,8 @@ impl ClientCommand {
 		match self {
 			ClientCommand::Ping => client.ping(),
 			ClientCommand::Version => client.version(),
+
+			ClientCommand::Auth(token) => client.auth(token),
 
 			ClientCommand::Get(key) => client.get(key),
 			ClientCommand::Set(key, value, ttl) => client.set(key, value, *ttl),
