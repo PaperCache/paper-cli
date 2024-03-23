@@ -39,7 +39,7 @@ impl Line {
 	}
 
 	pub fn set(&mut self, buf: &str) {
-		self.buf = buf.to_owned();
+		buf.clone_into(&mut self.buf);
 		self.position = buf.len();
 	}
 
