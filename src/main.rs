@@ -46,6 +46,11 @@ fn main() {
 						print_err(&err.to_string());
 					},
 
+					Err(err) if err == CommandError::Interrupted => {
+						print_note(&err.to_string());
+						return;
+					},
+
 					Err(err) => {
 						print_err(&err.to_string());
 						return;
