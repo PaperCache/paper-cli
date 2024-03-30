@@ -26,8 +26,6 @@ fn main() {
 	let args = Args::parse();
 
 	loop {
-		print_note("Connecting to server.");
-
 		let mut client = match PaperClient::new(&args.host, args.port) {
 			Ok(client) => client,
 
@@ -48,12 +46,10 @@ fn main() {
 						print_err(&err.to_string());
 					},
 
-					Err(err) if err == CommandError::Interrupted => {
-						print_note(&err.to_string());
+					Err(err) => {
+						print_err(&err.to_string());
 						return;
 					},
-
-					Err(_) => break,
 				},
 
 				Err(err) if err == CommandError::Interrupted => {
