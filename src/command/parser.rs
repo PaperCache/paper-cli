@@ -43,6 +43,7 @@ impl CommandParser {
 
 		line_reader.register_hint("stats");
 
+		line_reader.register_hint("help");
 		line_reader.register_hint("clear");
 		line_reader.register_hint("quit");
 		line_reader.register_hint("exit");
@@ -80,6 +81,14 @@ impl CommandParser {
 		let command = parse_command(&tokens)?;
 
 		Ok(command)
+	}
+
+	pub fn print_hints(&self, prefix: Option<&str>) {
+		let prefix = prefix.unwrap_or("");
+
+		for hint in self.line_reader.hints() {
+			println!("{prefix}{hint}");
+		}
 	}
 
 	fn parse_line(&self, line: &str) -> Result<Vec<String>, CommandError> {
@@ -135,6 +144,10 @@ fn parse_command(tokens: &[String]) -> Result<Command, CommandError> {
 		"policy" => parse_policy(tokens),
 
 		"stats" => parse_stats(tokens),
+
+		"h" | "help" => Ok(Command::Cli(
+			CliCommand::Help
+		)),
 
 		"clear" => Ok(Command::Cli(
 			CliCommand::Clear

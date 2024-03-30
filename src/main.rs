@@ -119,6 +119,11 @@ fn handle_cli_command(
 		return Err(CommandError::Interrupted);
 	}
 
+	if command.is_help() {
+		print_ok("Supported commands:");
+		parser.print_hints(Some("  "));
+	}
+
 	if let Err(err) = command.run() {
 		print_err(&err.to_string());
 	}

@@ -65,6 +65,10 @@ impl LineReader {
 		}
 	}
 
+	pub fn hints(&self) -> &[&'static str] {
+		self.hinter.hints()
+	}
+
 	pub fn register_hint(&mut self, hint: &'static str) {
 		self.hinter.add(hint);
 	}

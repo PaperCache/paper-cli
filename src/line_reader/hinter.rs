@@ -11,6 +11,10 @@ impl Hinter {
 		}
 	}
 
+	pub fn hints(&self) -> &[&'static str] {
+		&self.hints
+	}
+
 	pub fn add(&mut self, hint: &'static str) {
 		self.hints.push(hint);
 	}
