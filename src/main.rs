@@ -1,6 +1,7 @@
 mod line_reader;
 mod command;
 
+use std::time::Instant;
 use clap::Parser;
 use paper_client::{PaperClient, PaperClientError};
 
@@ -90,11 +91,17 @@ fn handle_client_command(
 	command: &ClientCommand,
 	client: &mut PaperClient
 ) -> Result<(), CommandError> {
+	let time = Instant::now();
+
 	match command.send(client) {
 		Ok(buf) => {
-			let Ok(message) = String::from_utf8(buf.to_vec()) else {
+			let Ok(mut message) = String::from_utf8(buf.to_vec()) else {
 				return Err(CommandError::InvalidResponse);
 			};
+
+			if matches!(command, ClientCommand::Ping) {
+				message += &format!(" ({:?})", time.elapsed());
+			}
 
 			print_ok(&message)
 		},
