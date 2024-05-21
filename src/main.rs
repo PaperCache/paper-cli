@@ -3,7 +3,7 @@ mod command;
 
 use std::time::Instant;
 use clap::Parser;
-use paper_client::{PaperClient, PaperClientError};
+use paper_client::{PaperClient, PaperClientError, FromPaperValue};
 
 use crate::command::{
 	Command,
@@ -25,9 +25,10 @@ struct Args {
 
 fn main() {
 	let args = Args::parse();
+	let addr = format!("paper://{}:{}", args.host, args.port);
 
 	loop {
-		let mut client = match PaperClient::new(&args.host, args.port) {
+		let mut client = match PaperClient::new(&addr) {
 			Ok(client) => client,
 
 			Err(err) => {
@@ -40,7 +41,7 @@ fn main() {
 
 		while parser.reading() {
 			match parser.read() {
-				Ok(command) => match handle_command(&command, &mut client, &mut parser) {
+				Ok(command) => match handle_command(command, &mut client, &mut parser) {
 					Ok(_) => {},
 
 					Err(err) if err == CommandError::InvalidResponse => {
@@ -70,7 +71,7 @@ fn main() {
 }
 
 fn handle_command(
-	command: &Command,
+	command: Command,
 	client: &mut PaperClient,
 	parser: &mut CommandParser
 ) -> Result<(), CommandError> {
@@ -88,18 +89,20 @@ fn handle_command(
 }
 
 fn handle_client_command(
-	command: &ClientCommand,
+	command: ClientCommand,
 	client: &mut PaperClient
 ) -> Result<(), CommandError> {
 	let time = Instant::now();
 
+	let is_ping = matches!(command, ClientCommand::Ping);
+
 	match command.send(client) {
 		Ok(buf) => {
-			let Ok(mut message) = String::from_utf8(buf.to_vec()) else {
-				return Err(CommandError::InvalidResponse);
-			};
+			let mut message = buf
+				.into_string()
+				.map_err(|_| CommandError::InvalidResponse)?;
 
-			if matches!(command, ClientCommand::Ping) {
+			if is_ping {
 				message += &format!(" ({:?})", time.elapsed());
 			}
 
@@ -118,7 +121,7 @@ fn handle_client_command(
 }
 
 fn handle_cli_command(
-	command: &CliCommand,
+	command: CliCommand,
 	parser: &mut CommandParser
 ) -> Result<(), CommandError> {
 	if command.is_quit() {

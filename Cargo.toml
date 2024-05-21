@@ -1,19 +1,19 @@
 [package]
 name = "paper_cli"
-version = "1.4.1"
+version = "1.4.2"
 edition = "2021"
 
 [dependencies]
-regex = "1.8.1"
+regex = "1.10.4"
 fasthash = "0.4.0"
-clap = { version = "4.2.7", features = ["derive"] }
-paper_utils = { git = "ssh://git@github.com/Paper-Book/paper-utils.git", tag = "v1.1.1" }
-paper_client = { git = "ssh://git@github.com/Paper-Book/paper-client-rs.git", tag = "v2.2.1" }
-byteorder = "1.4.3"
-kwik = { git = "https://github.com/KiaShakiba/kwik.git", tag = "v1.0.0" }
-crossterm = "0.26.1"
+clap = { version = "4.5.4", features = ["derive"] }
+paper_utils = { git = "ssh://git@github.com/Paper-Book/paper-utils.git", tag = "v1.1.2" }
+paper_client = { git = "ssh://git@github.com/Paper-Book/paper-client-rs.git", tag = "v2.3.2" }
+byteorder = "1.5.0"
+kwik = { git = "https://github.com/KiaShakiba/kwik.git", tag = "v1.6.2" }
+crossterm = "0.27.0"
 parse-size = "1.0.0"
-thiserror = "1.0.58"
+thiserror = "1.0.61"
 
 [[bin]]
 name = "paper-cli"

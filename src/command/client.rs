@@ -32,7 +32,7 @@ pub enum ClientCommand {
 }
 
 impl ClientCommand {
-	pub fn send(&self, client: &mut PaperClient) -> PaperClientResult<Buffer> {
+	pub fn send(self, client: &mut PaperClient) -> PaperClientResult<Buffer> {
 		match self {
 			ClientCommand::Ping => client.ping(),
 			ClientCommand::Version => client.version(),
@@ -40,7 +40,7 @@ impl ClientCommand {
 			ClientCommand::Auth(token) => client.auth(token),
 
 			ClientCommand::Get(key) => client.get(key),
-			ClientCommand::Set(key, value, ttl) => client.set(key, value, *ttl),
+			ClientCommand::Set(key, value, ttl) => client.set(key, value, ttl),
 			ClientCommand::Del(key) => client.del(key),
 
 			ClientCommand::Has(key) => {
@@ -52,7 +52,7 @@ impl ClientCommand {
 			},
 
 			ClientCommand::Peek(key) => client.peek(key),
-			ClientCommand::Ttl(key, ttl) => client.ttl(key, *ttl),
+			ClientCommand::Ttl(key, ttl) => client.ttl(key, ttl),
 
 			ClientCommand::Size(key) => {
 				let size = client.size(key)?;
@@ -72,8 +72,8 @@ impl ClientCommand {
 
 			ClientCommand::Wipe => client.wipe(),
 
-			ClientCommand::Resize(size) => client.resize(*size),
-			ClientCommand::Policy(policy) => client.policy(*policy),
+			ClientCommand::Resize(size) => client.resize(size),
+			ClientCommand::Policy(policy) => client.policy(policy),
 
 			ClientCommand::Stats => {
 				let stats = client.stats()?;
