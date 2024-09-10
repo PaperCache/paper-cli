@@ -206,7 +206,7 @@ fn parse_set(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("set"));
 	}
 
-	let value = tokens[2].clone().into_bytes().into_boxed_slice();
+	let value = tokens[2].clone();
 
 	let ttl_value = if tokens.len() == 4 {
 		tokens[3].parse::<u32>()

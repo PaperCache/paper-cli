@@ -3,7 +3,7 @@ mod command;
 
 use std::time::Instant;
 use clap::Parser;
-use paper_client::{PaperClient, PaperClientError, FromPaperValue};
+use paper_client::{PaperClient, PaperClientError};
 
 use crate::command::{
 	Command,
@@ -98,8 +98,8 @@ fn handle_client_command(
 
 	match command.send(client) {
 		Ok(buf) => {
-			let mut message = buf
-				.into_string()
+			let mut message: String = buf
+				.try_into()
 				.map_err(|_| CommandError::InvalidResponse)?;
 
 			if is_ping {

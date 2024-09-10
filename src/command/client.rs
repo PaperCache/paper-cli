@@ -1,10 +1,9 @@
 use kwik::fmt;
 
-use paper_utils::stream::Buffer;
-
 use paper_client::{
 	PaperClient,
 	PaperClientResult,
+	PaperValue,
 	Policy,
 };
 
@@ -15,7 +14,7 @@ pub enum ClientCommand {
 	Auth(String),
 
 	Get(String),
-	Set(String, Buffer, Option<u32>),
+	Set(String, String, Option<u32>),
 	Del(String),
 
 	Has(String),
@@ -32,7 +31,7 @@ pub enum ClientCommand {
 }
 
 impl ClientCommand {
-	pub fn send(self, client: &mut PaperClient) -> PaperClientResult<Buffer> {
+	pub fn send(self, client: &mut PaperClient) -> PaperClientResult<PaperValue> {
 		match self {
 			ClientCommand::Ping => client.ping(),
 			ClientCommand::Version => client.version(),
@@ -44,11 +43,8 @@ impl ClientCommand {
 			ClientCommand::Del(key) => client.del(key),
 
 			ClientCommand::Has(key) => {
-				let buf = format!("{}", client.has(key)?)
-					.into_bytes()
-					.into_boxed_slice();
-
-				Ok(buf)
+				let value = format!("{}", client.has(key)?).into();
+				Ok(value)
 			},
 
 			ClientCommand::Peek(key) => client.peek(key),
@@ -57,17 +53,13 @@ impl ClientCommand {
 			ClientCommand::Size(key) => {
 				let size = client.size(key)?;
 
-				let response = format!(
+				let value = format!(
 					"{} ({} B)",
 					fmt::memory(size, Some(2)),
 					size,
-				);
+				).into();
 
-				let buf = response
-					.into_bytes()
-					.into_boxed_slice();
-
-				Ok(buf)
+				Ok(value)
 			},
 
 			ClientCommand::Wipe => client.wipe(),
@@ -120,7 +112,7 @@ impl ClientCommand {
 					fmt::timespan(stats.get_uptime()),
 				);
 
-				let response = format!(
+				let value = format!(
 					"paper stats\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
 					max_size_output,
 					used_size_output,
@@ -130,13 +122,9 @@ impl ClientCommand {
 					miss_ratio_output,
 					policy_output,
 					uptime,
-				);
+				).into();
 
-				let buf = response
-					.into_bytes()
-					.into_boxed_slice();
-
-				Ok(buf)
+				Ok(value)
 			},
 		}
 	}
