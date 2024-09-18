@@ -2,33 +2,33 @@ use thiserror::Error;
 
 #[derive(Debug, PartialEq, Error)]
 pub enum CommandError {
-	#[error("Please enter a command.")]
+	#[error("please enter a command")]
 	EmptyCommand,
 
-	#[error("Command not recognized.")]
+	#[error("command not recognized")]
 	InvalidCommand,
 
-	#[error("Invalid arguments for <{0}> command.")]
+	#[error("invalid arguments for <{0}> command")]
 	InvalidArguments(&'static str),
 
-	#[error("Invalid cache size.")]
+	#[error("invalid cache size")]
 	InvalidCacheSize,
 
-	#[error("Invalid TTL.")]
+	#[error("invalid TTL")]
 	InvalidTtl,
 
-	#[error("Invalid policy.")]
+	#[error("invalid policy")]
 	InvalidPolicy,
 
-	#[error("Could not display response data.")]
+	#[error("could not display response data")]
 	InvalidResponse,
 
-	#[error("Disconnected.")]
+	#[error("disconnected")]
 	Disconnected,
 
-	#[error("Closing connection.")]
+	#[error("closing connection")]
 	Interrupted,
 
-	#[error("Internal error.")]
+	#[error("internal error")]
 	Internal,
 }

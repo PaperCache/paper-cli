@@ -30,17 +30,19 @@ pub enum ClientCommand {
 	Stats,
 }
 
+const SUCCESS_MESSAGE: &str = "done";
+
 impl ClientCommand {
 	pub fn send(self, client: &mut PaperClient) -> PaperClientResult<PaperValue> {
 		match self {
 			ClientCommand::Ping => client.ping(),
 			ClientCommand::Version => client.version(),
 
-			ClientCommand::Auth(token) => client.auth(token),
+			ClientCommand::Auth(token) => client.auth(token).map(|_| SUCCESS_MESSAGE.into()),
 
 			ClientCommand::Get(key) => client.get(key),
-			ClientCommand::Set(key, value, ttl) => client.set(key, value, ttl),
-			ClientCommand::Del(key) => client.del(key),
+			ClientCommand::Set(key, value, ttl) => client.set(key, value, ttl).map(|_| SUCCESS_MESSAGE.into()),
+			ClientCommand::Del(key) => client.del(key).map(|_| SUCCESS_MESSAGE.into()),
 
 			ClientCommand::Has(key) => {
 				let value = format!("{}", client.has(key)?).into();
@@ -48,7 +50,7 @@ impl ClientCommand {
 			},
 
 			ClientCommand::Peek(key) => client.peek(key),
-			ClientCommand::Ttl(key, ttl) => client.ttl(key, ttl),
+			ClientCommand::Ttl(key, ttl) => client.ttl(key, ttl).map(|_| SUCCESS_MESSAGE.into()),
 
 			ClientCommand::Size(key) => {
 				let size = client.size(key)?;
@@ -62,10 +64,10 @@ impl ClientCommand {
 				Ok(value)
 			},
 
-			ClientCommand::Wipe => client.wipe(),
+			ClientCommand::Wipe => client.wipe().map(|_| SUCCESS_MESSAGE.into()),
 
-			ClientCommand::Resize(size) => client.resize(size),
-			ClientCommand::Policy(policy) => client.policy(policy),
+			ClientCommand::Resize(size) => client.resize(size).map(|_| SUCCESS_MESSAGE.into()),
+			ClientCommand::Policy(policy) => client.policy(policy).map(|_| SUCCESS_MESSAGE.into()),
 
 			ClientCommand::Stats => {
 				let stats = client.stats()?;
