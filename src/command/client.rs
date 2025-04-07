@@ -4,7 +4,7 @@ use paper_client::{
 	PaperClient,
 	PaperClientResult,
 	PaperValue,
-	Policy,
+	PaperPolicy,
 };
 
 pub enum ClientCommand {
@@ -25,7 +25,7 @@ pub enum ClientCommand {
 	Wipe,
 
 	Resize(u64),
-	Policy(Policy),
+	Policy(PaperPolicy),
 
 	Stats,
 }
@@ -106,7 +106,7 @@ impl ClientCommand {
 
 				let policy_output = format!(
 					"policy:\t\t{}",
-					stats.get_policy().id(),
+					stats.get_policy(),
 				);
 
 				let uptime = format!(

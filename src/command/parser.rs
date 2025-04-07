@@ -1,6 +1,7 @@
+use std::str::FromStr;
 use regex::Regex;
 use parse_size::parse_size as parse_input_size;
-use paper_client::Policy;
+use paper_client::PaperPolicy;
 
 use crate::{
 	command::{Command, ClientCommand, CliCommand},
@@ -329,14 +330,8 @@ fn parse_policy(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("policy"));
 	}
 
-	let policy = match tokens[1].as_str() {
-		"lfu" => Policy::Lfu,
-		"fifo" => Policy::Fifo,
-		"lru" => Policy::Lru,
-		"mru" => Policy::Mru,
-
-		_ => return Err(CommandError::InvalidPolicy),
-	};
+	let policy = PaperPolicy::from_str(&tokens[1])
+		.map_err(|_| CommandError::InvalidPolicy)?;
 
 	Ok(Command::Client(
 		ClientCommand::Policy(policy)
