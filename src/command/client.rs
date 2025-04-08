@@ -104,10 +104,13 @@ impl ClientCommand {
 					stats.get_miss_ratio(),
 				);
 
-				let policy_output = format!(
-					"policy:\t\t{}",
-					stats.get_policy(),
-				);
+				let policy_str = if stats.is_auto_policy() {
+					format!("auto({})", stats.get_policy())
+				} else {
+					stats.get_policy().to_string()
+				};
+
+				let policy_output = format!("policy:\t\t{policy_str}");
 
 				let uptime = format!(
 					"uptime:\t\t{}",
