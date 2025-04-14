@@ -1,14 +1,14 @@
 [package]
 name = "paper_cli"
-version = "1.7.0"
+version = "1.7.1"
 edition = "2021"
 
 [dependencies]
 regex = "1.11.1"
 fasthash = "0.4.0"
 clap = { version = "4.5.35", features = ["derive"] }
-paper_utils = { git = "ssh://git@github.com/Paper-Book/paper-utils.git", tag = "v1.2.2" }
-paper_client = { git = "ssh://git@github.com/Paper-Book/paper-client-rs.git", tag = "v1.7.0" }
+paper_utils = { git = "ssh://git@github.com/Paper-Book/paper-utils.git", tag = "v1.2.3" }
+paper_client = { git = "ssh://git@github.com/Paper-Book/paper-client-rs.git", tag = "v1.7.1" }
 byteorder = "1.5.0"
 kwik = { git = "https://github.com/KiaShakiba/kwik.git", tag = "v1.15.6" }
 crossterm = "0.29.0"

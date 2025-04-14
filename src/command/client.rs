@@ -84,6 +84,11 @@ impl ClientCommand {
 					stats.get_used_size(),
 				);
 
+				let num_objects_output = format!(
+					"num_objects:\t{}",
+					fmt::number(stats.get_num_objects()),
+				);
+
 				let total_gets_output = format!(
 					"total_gets:\t{}",
 					fmt::number(stats.get_total_gets()),
@@ -118,9 +123,10 @@ impl ClientCommand {
 				);
 
 				let value = format!(
-					"paper stats\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
+					"paper stats\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
 					max_size_output,
 					used_size_output,
+					num_objects_output,
 					total_gets_output,
 					total_sets_output,
 					total_dels_output,
