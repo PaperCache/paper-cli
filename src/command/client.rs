@@ -109,6 +109,15 @@ impl ClientCommand {
 					stats.get_miss_ratio(),
 				);
 
+				let policies_str = stats
+					.get_policies()
+					.iter()
+					.map(|policy| format!("* {policy}"))
+					.collect::<Vec<_>>()
+					.join("\n");
+
+				let policies_output = format!("policies:\n{policies_str}");
+
 				let policy_str = if stats.is_auto_policy() {
 					format!("auto({})", stats.get_policy())
 				} else {
@@ -123,7 +132,7 @@ impl ClientCommand {
 				);
 
 				let value = format!(
-					"paper stats\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
+					"paper stats\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
 					max_size_output,
 					used_size_output,
 					num_objects_output,
@@ -131,6 +140,7 @@ impl ClientCommand {
 					total_sets_output,
 					total_dels_output,
 					miss_ratio_output,
+					policies_output,
 					policy_output,
 					uptime,
 				).into();
