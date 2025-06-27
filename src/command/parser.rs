@@ -27,7 +27,7 @@ pub struct CommandParser {
 
 impl CommandParser {
 	pub fn new(host: &str, port: u32) -> Self {
-		let prompt = format!("\x1B[32m{}:{:0>4}\x1B[0m> ", host, port);
+		let prompt = format!("\x1B[32m{host}:{port:0>4}\x1B[0m> ");
 		let mut line_reader = LineReader::new(prompt);
 
 		line_reader.register_hint("ping");

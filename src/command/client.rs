@@ -139,17 +139,7 @@ impl ClientCommand {
 				);
 
 				let value = format!(
-					"paper stats\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
-					max_size_output,
-					used_size_output,
-					num_objects_output,
-					total_gets_output,
-					total_sets_output,
-					total_dels_output,
-					miss_ratio_output,
-					policies_output,
-					policy_output,
-					uptime,
+					"paper stats\n{max_size_output}\n{used_size_output}\n{num_objects_output}\n{total_gets_output}\n{total_sets_output}\n{total_dels_output}\n{miss_ratio_output}\n{policies_output}\n{policy_output}\n{uptime}",
 				).into();
 
 				Ok(value)

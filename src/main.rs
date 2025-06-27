@@ -149,13 +149,13 @@ fn handle_cli_command(
 }
 
 fn print_ok(message: &str) {
-	println!("\x1B[33mOk\x1B[0m: {}", message);
+	println!("\x1B[33mOk\x1B[0m: {message}");
 }
 
 fn print_err(message: &str) {
-	println!("\x1B[31mErr\x1B[0m: {}", message);
+	println!("\x1B[31mErr\x1B[0m: {message}");
 }
 
 fn print_note(message: &str) {
-	println!("\x1B[36mNote\x1B[0m: {}", message);
+	println!("\x1B[36mNote\x1B[0m: {message}");
 }
