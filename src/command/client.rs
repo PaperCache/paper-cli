@@ -79,7 +79,7 @@ impl ClientCommand {
 			ClientCommand::Status => {
 				let status = client.status()?;
 
-				let pid_output = format!("PID:\t\t{}", status.pid());
+				let pid_output = format!("pid:\t\t{}", status.pid());
 
 				let max_size_output = format!(
 					"max_size:\t{} ({} B)",
