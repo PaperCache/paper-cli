@@ -49,7 +49,7 @@ impl CommandParser {
 		line_reader.register_hint("resize <size>");
 		line_reader.register_hint("policy <policy>");
 
-		line_reader.register_hint("stats");
+		line_reader.register_hint("status");
 
 		line_reader.register_hint("help");
 		line_reader.register_hint("clear");
@@ -151,7 +151,7 @@ fn parse_command(tokens: &[String]) -> Result<Command, CommandError> {
 		"resize" => parse_resize(tokens),
 		"policy" => parse_policy(tokens),
 
-		"stats" => parse_stats(tokens),
+		"status" => parse_status(tokens),
 
 		"h" | "help" => Ok(Command::Cli(
 			CliCommand::Help
@@ -345,12 +345,12 @@ fn parse_policy(tokens: &[String]) -> Result<Command, CommandError> {
 	))
 }
 
-fn parse_stats(tokens: &[String]) -> Result<Command, CommandError> {
+fn parse_status(tokens: &[String]) -> Result<Command, CommandError> {
 	if tokens.len() != 1 {
-		return Err(CommandError::InvalidArguments("stats"));
+		return Err(CommandError::InvalidArguments("status"));
 	}
 
 	Ok(Command::Client(
-		ClientCommand::Stats
+		ClientCommand::Status
 	))
 }

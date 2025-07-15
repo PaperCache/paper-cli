@@ -34,7 +34,7 @@ pub enum ClientCommand {
 	Resize(u64),
 	Policy(PaperPolicy),
 
-	Stats,
+	Status,
 }
 
 const SUCCESS_MESSAGE: &str = "done";
@@ -76,48 +76,62 @@ impl ClientCommand {
 			ClientCommand::Resize(size) => client.resize(size).map(|_| SUCCESS_MESSAGE.into()),
 			ClientCommand::Policy(policy) => client.policy(policy).map(|_| SUCCESS_MESSAGE.into()),
 
-			ClientCommand::Stats => {
-				let stats = client.stats()?;
+			ClientCommand::Status => {
+				let status = client.status()?;
+
+				let pid_output = format!("PID:\t\t{}", status.pid());
 
 				let max_size_output = format!(
 					"max_size:\t{} ({} B)",
-					fmt::memory(stats.get_max_size(), Some(2)),
-					stats.get_max_size(),
+					fmt::memory(status.max_size(), Some(2)),
+					status.max_size(),
 				);
 
 				let used_size_output = format!(
 					"used_size:\t{} ({} B)",
-					fmt::memory(stats.get_used_size(), Some(2)),
-					stats.get_used_size(),
+					fmt::memory(status.used_size(), Some(2)),
+					status.used_size(),
 				);
 
 				let num_objects_output = format!(
 					"num_objects:\t{}",
-					fmt::number(stats.get_num_objects()),
+					fmt::number(status.num_objects()),
+				);
+
+				let rss_output = format!(
+					"rss:\t\t{} ({} B)",
+					fmt::memory(status.rss(), Some(2)),
+					status.rss(),
+				);
+
+				let hwm_output = format!(
+					"hwm:\t\t{} ({} B)",
+					fmt::memory(status.hwm(), Some(2)),
+					status.hwm(),
 				);
 
 				let total_gets_output = format!(
 					"total_gets:\t{}",
-					fmt::number(stats.get_total_gets()),
+					fmt::number(status.total_gets()),
 				);
 
 				let total_sets_output = format!(
 					"total_sets:\t{}",
-					fmt::number(stats.get_total_sets()),
+					fmt::number(status.total_sets()),
 				);
 
 				let total_dels_output = format!(
 					"total_dels:\t{}",
-					fmt::number(stats.get_total_dels()),
+					fmt::number(status.total_dels()),
 				);
 
 				let miss_ratio_output = format!(
 					"miss_ratio:\t{:.3}",
-					stats.get_miss_ratio(),
+					status.miss_ratio(),
 				);
 
-				let policies_str = stats
-					.get_policies()
+				let policies_str = status
+					.policies()
 					.iter()
 					.map(|policy| format!("* {policy}"))
 					.collect::<Vec<_>>()
@@ -125,21 +139,21 @@ impl ClientCommand {
 
 				let policies_output = format!("policies:\n{policies_str}");
 
-				let policy_str = if stats.is_auto_policy() {
-					format!("auto({})", stats.get_policy())
+				let policy_str = if status.is_auto_policy() {
+					format!("auto({})", status.policy())
 				} else {
-					stats.get_policy().to_string()
+					status.policy().to_string()
 				};
 
 				let policy_output = format!("policy:\t\t{policy_str}");
 
 				let uptime = format!(
 					"uptime:\t\t{}",
-					fmt::timespan(stats.get_uptime()),
+					fmt::timespan(status.uptime()),
 				);
 
 				let value = format!(
-					"paper stats\n{max_size_output}\n{used_size_output}\n{num_objects_output}\n{total_gets_output}\n{total_sets_output}\n{total_dels_output}\n{miss_ratio_output}\n{policies_output}\n{policy_output}\n{uptime}",
+					"PaperCache status\n{pid_output}\n{max_size_output}\n{used_size_output}\n{num_objects_output}\n{rss_output}\n{hwm_output}\n{total_gets_output}\n{total_sets_output}\n{total_dels_output}\n{miss_ratio_output}\n{policies_output}\n{policy_output}\n{uptime}",
 				).into();
 
 				Ok(value)
