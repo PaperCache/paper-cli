@@ -34,7 +34,7 @@ pub enum ClientCommand {
 	Resize(u64),
 	Policy(PaperPolicy),
 
-	Status,
+	Status(bool),
 }
 
 const SUCCESS_MESSAGE: &str = "done";
@@ -76,8 +76,14 @@ impl ClientCommand {
 			ClientCommand::Resize(size) => client.resize(size).map(|_| SUCCESS_MESSAGE.into()),
 			ClientCommand::Policy(policy) => client.policy(policy).map(|_| SUCCESS_MESSAGE.into()),
 
-			ClientCommand::Status => {
+			ClientCommand::Status(watch) => {
 				let status = client.status()?;
+
+				let mut title_output = "PaperCache status".to_string();
+
+				if watch {
+					title_output += " (watching)";
+				}
 
 				let pid_output = format!("pid:\t\t{}", status.pid());
 
@@ -153,7 +159,7 @@ impl ClientCommand {
 				);
 
 				let value = format!(
-					"PaperCache status\n{pid_output}\n{max_size_output}\n{used_size_output}\n{num_objects_output}\n{rss_output}\n{hwm_output}\n{total_gets_output}\n{total_sets_output}\n{total_dels_output}\n{miss_ratio_output}\n{policies_output}\n{policy_output}\n{uptime}",
+					"{title_output}\n{pid_output}\n{max_size_output}\n{used_size_output}\n{num_objects_output}\n{rss_output}\n{hwm_output}\n{total_gets_output}\n{total_sets_output}\n{total_dels_output}\n{miss_ratio_output}\n{policies_output}\n{policy_output}\n{uptime}",
 				).into();
 
 				Ok(value)

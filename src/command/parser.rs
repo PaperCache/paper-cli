@@ -49,7 +49,7 @@ impl CommandParser {
 		line_reader.register_hint("resize <size>");
 		line_reader.register_hint("policy <policy>");
 
-		line_reader.register_hint("status");
+		line_reader.register_hint("status [watch]");
 
 		line_reader.register_hint("help");
 		line_reader.register_hint("clear");
@@ -346,11 +346,17 @@ fn parse_policy(tokens: &[String]) -> Result<Command, CommandError> {
 }
 
 fn parse_status(tokens: &[String]) -> Result<Command, CommandError> {
-	if tokens.len() != 1 {
+	if tokens.is_empty() || tokens.len() > 2 {
 		return Err(CommandError::InvalidArguments("status"));
 	}
 
+	if tokens.len() == 2 && tokens[1] != "watch" {
+		return Err(CommandError::InvalidArguments("status"));
+	}
+
+	let watch = tokens.len() == 2;
+
 	Ok(Command::Client(
-		ClientCommand::Status
+		ClientCommand::Status(watch)
 	))
 }

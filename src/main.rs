@@ -8,7 +8,11 @@
 mod line_reader;
 mod command;
 
-use std::time::Instant;
+use std::{
+	thread,
+	time::{Instant, Duration},
+};
+
 use clap::Parser;
 use paper_client::{PaperClient, PaperClientError};
 
@@ -102,6 +106,7 @@ fn handle_client_command(
 	let time = Instant::now();
 
 	let is_ping = matches!(command, ClientCommand::Ping);
+	let is_status_watch = matches!(command, ClientCommand::Status(true));
 
 	match command.send(client) {
 		Ok(buf) => {
@@ -113,7 +118,17 @@ fn handle_client_command(
 				message += &format!(" ({:?})", time.elapsed());
 			}
 
-			print_ok(&message)
+			if is_status_watch {
+				CliCommand::Clear.run()?;
+			}
+
+			print_ok(&message);
+
+			if is_status_watch {
+				print_note("Watching cache status... Ctrl-C to exit.");
+				thread::sleep(Duration::from_secs(1));
+				return handle_client_command(ClientCommand::Status(true), client);
+			}
 		},
 
 		Err(err) if err == PaperClientError::Disconnected => {
