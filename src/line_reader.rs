@@ -6,39 +6,28 @@
  */
 
 mod error;
-mod line;
-mod history;
 mod hinter;
+mod history;
+mod line;
 
 use std::{
 	io,
-	io::{Write, Stdout},
+	io::{Stdout, Write},
 };
 
 use crossterm::{
+	event::{Event, KeyCode, KeyEvent, KeyModifiers, read as crossterm_read},
 	terminal,
-	event::{
-		read as crossterm_read,
-		Event,
-		KeyEvent,
-		KeyCode,
-		KeyModifiers
-	},
-};
-
-use crate::line_reader::{
-	history::History,
-	hinter::Hinter,
-	line::Line,
 };
 
 pub use crate::line_reader::error::LineReaderError;
+use crate::line_reader::{hinter::Hinter, history::History, line::Line};
 
 pub struct LineReader {
 	prompt: String,
 
 	history: History,
-	hinter: Hinter,
+	hinter:  Hinter,
 }
 
 enum ReadEvent {
@@ -178,9 +167,9 @@ fn event() -> ReadEvent {
 				return ReadEvent::Closed;
 			}
 
-			if key_event.modifiers != KeyModifiers::NONE &&
-				key_event.modifiers != KeyModifiers::SHIFT {
-
+			if key_event.modifiers != KeyModifiers::NONE
+				&& key_event.modifiers != KeyModifiers::SHIFT
+			{
 				return ReadEvent::Skip;
 			}
 
@@ -216,12 +205,13 @@ fn clear(stdout: &mut Stdout) -> Result<(), LineReaderError> {
 }
 
 pub fn flush(stdout: &mut Stdout) -> Result<(), LineReaderError> {
-	stdout.flush().map_err(|_| LineReaderError::Internal)
+	stdout
+		.flush()
+		.map_err(|_| LineReaderError::Internal)
 }
 
 fn is_ctrl_c(key_event: KeyEvent) -> bool {
-	key_event.code == KeyCode::Char('c') &&
-		key_event.modifiers == KeyModifiers::CONTROL
+	key_event.code == KeyCode::Char('c') && key_event.modifiers == KeyModifiers::CONTROL
 }
 
 fn enable_raw_mode() -> Result<(), LineReaderError> {

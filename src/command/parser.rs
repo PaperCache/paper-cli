@@ -6,20 +6,20 @@
  */
 
 use std::str::FromStr;
-use regex::Regex;
-use parse_size::parse_size as parse_input_size;
+
 use paper_client::PaperPolicy;
+use parse_size::parse_size as parse_input_size;
+use regex::Regex;
 
 use crate::{
-	command::{Command, ClientCommand, CliCommand},
-	command::error::CommandError,
+	command::{CliCommand, ClientCommand, Command, error::CommandError},
 	line_reader::{LineReader, LineReaderError},
 };
 
 pub struct CommandParser {
 	line_reader: LineReader,
 
-	tokenizer: Regex,
+	tokenizer:     Regex,
 	escaped_quote: Regex,
 
 	reading: bool,
@@ -112,7 +112,8 @@ impl CommandParser {
 					token = chars.as_str();
 				}
 
-				let token = self.escaped_quote
+				let token = self
+					.escaped_quote
 					.replace_all(token, "\"")
 					.to_string();
 
@@ -153,17 +154,11 @@ fn parse_command(tokens: &[String]) -> Result<Command, CommandError> {
 
 		"status" => parse_status(tokens),
 
-		"h" | "help" => Ok(Command::Cli(
-			CliCommand::Help
-		)),
+		"h" | "help" => Ok(Command::Cli(CliCommand::Help)),
 
-		"clear" => Ok(Command::Cli(
-			CliCommand::Clear
-		)),
+		"clear" => Ok(Command::Cli(CliCommand::Clear)),
 
-		"q" | "quit" | "exit" => Ok(Command::Cli(
-			CliCommand::Quit
-		)),
+		"q" | "quit" | "exit" => Ok(Command::Cli(CliCommand::Quit)),
 
 		_ => Err(CommandError::InvalidCommand),
 	}
@@ -174,9 +169,7 @@ fn parse_ping(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("ping"));
 	}
 
-	Ok(Command::Client(
-		ClientCommand::Ping
-	))
+	Ok(Command::Client(ClientCommand::Ping))
 }
 
 fn parse_version(tokens: &[String]) -> Result<Command, CommandError> {
@@ -184,9 +177,7 @@ fn parse_version(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("version"));
 	}
 
-	Ok(Command::Client(
-		ClientCommand::Version
-	))
+	Ok(Command::Client(ClientCommand::Version))
 }
 
 fn parse_auth(tokens: &[String]) -> Result<Command, CommandError> {
@@ -194,9 +185,7 @@ fn parse_auth(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("auth"));
 	}
 
-	Ok(Command::Client(
-		ClientCommand::Auth(tokens[1].clone())
-	))
+	Ok(Command::Client(ClientCommand::Auth(tokens[1].clone())))
 }
 
 fn parse_get(tokens: &[String]) -> Result<Command, CommandError> {
@@ -204,9 +193,7 @@ fn parse_get(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("get"));
 	}
 
-	Ok(Command::Client(
-		ClientCommand::Get(tokens[1].clone())
-	))
+	Ok(Command::Client(ClientCommand::Get(tokens[1].clone())))
 }
 
 fn parse_set(tokens: &[String]) -> Result<Command, CommandError> {
@@ -231,13 +218,11 @@ fn parse_set(tokens: &[String]) -> Result<Command, CommandError> {
 		value => Some(value),
 	};
 
-	Ok(Command::Client(
-		ClientCommand::Set(
-			tokens[1].clone(),
-			value,
-			ttl,
-		)
-	))
+	Ok(Command::Client(ClientCommand::Set(
+		tokens[1].clone(),
+		value,
+		ttl,
+	)))
 }
 
 fn parse_del(tokens: &[String]) -> Result<Command, CommandError> {
@@ -245,9 +230,7 @@ fn parse_del(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("del"));
 	}
 
-	Ok(Command::Client(
-		ClientCommand::Del(tokens[1].clone())
-	))
+	Ok(Command::Client(ClientCommand::Del(tokens[1].clone())))
 }
 
 fn parse_has(tokens: &[String]) -> Result<Command, CommandError> {
@@ -255,9 +238,7 @@ fn parse_has(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("has"));
 	}
 
-	Ok(Command::Client(
-		ClientCommand::Has(tokens[1].clone())
-	))
+	Ok(Command::Client(ClientCommand::Has(tokens[1].clone())))
 }
 
 fn parse_peek(tokens: &[String]) -> Result<Command, CommandError> {
@@ -265,9 +246,7 @@ fn parse_peek(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("peek"));
 	}
 
-	Ok(Command::Client(
-		ClientCommand::Peek(tokens[1].clone())
-	))
+	Ok(Command::Client(ClientCommand::Peek(tokens[1].clone())))
 }
 
 fn parse_ttl(tokens: &[String]) -> Result<Command, CommandError> {
@@ -290,12 +269,7 @@ fn parse_ttl(tokens: &[String]) -> Result<Command, CommandError> {
 		value => Some(value),
 	};
 
-	Ok(Command::Client(
-		ClientCommand::Ttl(
-			tokens[1].clone(),
-			ttl,
-		)
-	))
+	Ok(Command::Client(ClientCommand::Ttl(tokens[1].clone(), ttl)))
 }
 
 fn parse_size(tokens: &[String]) -> Result<Command, CommandError> {
@@ -303,9 +277,7 @@ fn parse_size(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("size"));
 	}
 
-	Ok(Command::Client(
-		ClientCommand::Size(tokens[1].clone())
-	))
+	Ok(Command::Client(ClientCommand::Size(tokens[1].clone())))
 }
 
 fn parse_wipe(tokens: &[String]) -> Result<Command, CommandError> {
@@ -313,9 +285,7 @@ fn parse_wipe(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("wipe"));
 	}
 
-	Ok(Command::Client(
-		ClientCommand::Wipe
-	))
+	Ok(Command::Client(ClientCommand::Wipe))
 }
 
 fn parse_resize(tokens: &[String]) -> Result<Command, CommandError> {
@@ -324,9 +294,7 @@ fn parse_resize(tokens: &[String]) -> Result<Command, CommandError> {
 	}
 
 	match parse_input_size(tokens[1..].join(" ")) {
-		Ok(size) => Ok(Command::Client(
-			ClientCommand::Resize(size)
-		)),
+		Ok(size) => Ok(Command::Client(ClientCommand::Resize(size))),
 
 		Err(_) => Err(CommandError::InvalidCacheSize),
 	}
@@ -337,12 +305,9 @@ fn parse_policy(tokens: &[String]) -> Result<Command, CommandError> {
 		return Err(CommandError::InvalidArguments("policy"));
 	}
 
-	let policy = PaperPolicy::from_str(&tokens[1])
-		.map_err(|_| CommandError::InvalidPolicy)?;
+	let policy = PaperPolicy::from_str(&tokens[1]).map_err(|_| CommandError::InvalidPolicy)?;
 
-	Ok(Command::Client(
-		ClientCommand::Policy(policy)
-	))
+	Ok(Command::Client(ClientCommand::Policy(policy)))
 }
 
 fn parse_status(tokens: &[String]) -> Result<Command, CommandError> {
@@ -356,7 +321,5 @@ fn parse_status(tokens: &[String]) -> Result<Command, CommandError> {
 
 	let watch = tokens.len() == 2;
 
-	Ok(Command::Client(
-		ClientCommand::Status(watch)
-	))
+	Ok(Command::Client(ClientCommand::Status(watch)))
 }

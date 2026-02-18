@@ -9,14 +9,14 @@ use crate::line_reader::line::Line;
 
 pub struct History {
 	commands: Vec<String>,
-	index: usize,
+	index:    usize,
 }
 
 impl History {
 	pub fn new() -> Self {
 		History {
 			commands: Vec::new(),
-			index: 0,
+			index:    0,
 		}
 	}
 

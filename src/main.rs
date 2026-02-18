@@ -5,23 +5,23 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-mod line_reader;
 mod command;
+mod line_reader;
 
 use std::{
 	thread,
-	time::{Instant, Duration},
+	time::{Duration, Instant},
 };
 
 use clap::Parser;
 use paper_client::{PaperClient, PaperClientError};
 
 use crate::command::{
-	Command,
-	ClientCommand,
 	CliCommand,
-	parser::CommandParser,
+	ClientCommand,
+	Command,
 	error::CommandError,
+	parser::CommandParser,
 };
 
 #[derive(Parser)]
@@ -84,24 +84,18 @@ fn main() {
 fn handle_command(
 	command: Command,
 	client: &mut PaperClient,
-	parser: &mut CommandParser
+	parser: &mut CommandParser,
 ) -> Result<(), CommandError> {
 	match command {
-		Command::Client(client_command) => handle_client_command(
-			client_command,
-			client
-		),
+		Command::Client(client_command) => handle_client_command(client_command, client),
 
-		Command::Cli(cli_command) => handle_cli_command(
-			cli_command,
-			parser
-		),
+		Command::Cli(cli_command) => handle_cli_command(cli_command, parser),
 	}
 }
 
 fn handle_client_command(
 	command: ClientCommand,
-	client: &mut PaperClient
+	client: &mut PaperClient,
 ) -> Result<(), CommandError> {
 	let time = Instant::now();
 
@@ -142,10 +136,7 @@ fn handle_client_command(
 	Ok(())
 }
 
-fn handle_cli_command(
-	command: CliCommand,
-	parser: &mut CommandParser
-) -> Result<(), CommandError> {
+fn handle_cli_command(command: CliCommand, parser: &mut CommandParser) -> Result<(), CommandError> {
 	if command.is_quit() {
 		parser.close();
 		return Err(CommandError::Interrupted);

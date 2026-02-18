@@ -5,15 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+pub mod cli;
+pub mod client;
 pub mod error;
 pub mod parser;
-pub mod client;
-pub mod cli;
 
-pub use crate::command::{
-	client::ClientCommand,
-	cli::CliCommand,
-};
+pub use crate::command::{cli::CliCommand, client::ClientCommand};
 
 pub enum Command {
 	Client(ClientCommand),

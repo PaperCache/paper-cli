@@ -6,13 +6,7 @@
  */
 
 use kwik::fmt;
-
-use paper_client::{
-	PaperClient,
-	PaperClientResult,
-	PaperValue,
-	PaperPolicy,
-};
+use paper_client::{PaperClient, PaperClientResult, PaperPolicy, PaperValue};
 
 pub enum ClientCommand {
 	Ping,
@@ -48,7 +42,9 @@ impl ClientCommand {
 			ClientCommand::Auth(token) => client.auth(token).map(|_| SUCCESS_MESSAGE.into()),
 
 			ClientCommand::Get(key) => client.get(key),
-			ClientCommand::Set(key, value, ttl) => client.set(key, value, ttl).map(|_| SUCCESS_MESSAGE.into()),
+			ClientCommand::Set(key, value, ttl) => client
+				.set(key, value, ttl)
+				.map(|_| SUCCESS_MESSAGE.into()),
 			ClientCommand::Del(key) => client.del(key).map(|_| SUCCESS_MESSAGE.into()),
 
 			ClientCommand::Has(key) => {
@@ -57,24 +53,26 @@ impl ClientCommand {
 			},
 
 			ClientCommand::Peek(key) => client.peek(key),
-			ClientCommand::Ttl(key, ttl) => client.ttl(key, ttl).map(|_| SUCCESS_MESSAGE.into()),
+			ClientCommand::Ttl(key, ttl) => client
+				.ttl(key, ttl)
+				.map(|_| SUCCESS_MESSAGE.into()),
 
 			ClientCommand::Size(key) => {
 				let size = client.size(key)?;
 
-				let value = format!(
-					"{} ({} B)",
-					fmt::memory(size, Some(2)),
-					size,
-				).into();
+				let value = format!("{} ({} B)", fmt::memory(size, Some(2)), size,).into();
 
 				Ok(value)
 			},
 
 			ClientCommand::Wipe => client.wipe().map(|_| SUCCESS_MESSAGE.into()),
 
-			ClientCommand::Resize(size) => client.resize(size).map(|_| SUCCESS_MESSAGE.into()),
-			ClientCommand::Policy(policy) => client.policy(policy).map(|_| SUCCESS_MESSAGE.into()),
+			ClientCommand::Resize(size) => client
+				.resize(size)
+				.map(|_| SUCCESS_MESSAGE.into()),
+			ClientCommand::Policy(policy) => client
+				.policy(policy)
+				.map(|_| SUCCESS_MESSAGE.into()),
 
 			ClientCommand::Status(watch) => {
 				let status = client.status()?;
@@ -99,10 +97,8 @@ impl ClientCommand {
 					status.used_size(),
 				);
 
-				let num_objects_output = format!(
-					"num_objects:\t{}",
-					fmt::number(status.num_objects()),
-				);
+				let num_objects_output =
+					format!("num_objects:\t{}", fmt::number(status.num_objects()),);
 
 				let rss_output = format!(
 					"rss:\t\t{} ({} B)",
@@ -116,25 +112,16 @@ impl ClientCommand {
 					status.hwm(),
 				);
 
-				let total_gets_output = format!(
-					"total_gets:\t{}",
-					fmt::number(status.total_gets()),
-				);
+				let total_gets_output =
+					format!("total_gets:\t{}", fmt::number(status.total_gets()),);
 
-				let total_sets_output = format!(
-					"total_sets:\t{}",
-					fmt::number(status.total_sets()),
-				);
+				let total_sets_output =
+					format!("total_sets:\t{}", fmt::number(status.total_sets()),);
 
-				let total_dels_output = format!(
-					"total_dels:\t{}",
-					fmt::number(status.total_dels()),
-				);
+				let total_dels_output =
+					format!("total_dels:\t{}", fmt::number(status.total_dels()),);
 
-				let miss_ratio_output = format!(
-					"miss_ratio:\t{:.3}",
-					status.miss_ratio(),
-				);
+				let miss_ratio_output = format!("miss_ratio:\t{:.3}", status.miss_ratio(),);
 
 				let policies_str = status
 					.policies()
@@ -153,10 +140,7 @@ impl ClientCommand {
 
 				let policy_output = format!("policy:\t\t{policy_str}");
 
-				let uptime = format!(
-					"uptime:\t\t{}",
-					fmt::timespan(status.uptime()),
-				);
+				let uptime = format!("uptime:\t\t{}", fmt::timespan(status.uptime()),);
 
 				let value = format!(
 					"{title_output}\n{pid_output}\n{max_size_output}\n{used_size_output}\n{num_objects_output}\n{rss_output}\n{hwm_output}\n{total_gets_output}\n{total_sets_output}\n{total_dels_output}\n{miss_ratio_output}\n{policies_output}\n{policy_output}\n{uptime}",

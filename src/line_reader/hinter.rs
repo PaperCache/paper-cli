@@ -14,7 +14,7 @@ pub struct Hinter {
 impl Hinter {
 	pub fn new() -> Self {
 		Hinter {
-			hints: Vec::new(),
+			hints: Vec::new()
 		}
 	}
 
@@ -41,12 +41,11 @@ impl Hinter {
 
 	pub fn get_partial_hint(&self, line: &Line) -> Option<&str> {
 		match self.get_full_hint(line) {
-			Some(full_hint) => {
-				full_hint
-					.split(' ')
-					.collect::<Vec<&str>>()
-					.first().copied()
-			},
+			Some(full_hint) => full_hint
+				.split(' ')
+				.collect::<Vec<&str>>()
+				.first()
+				.copied(),
 
 			None => None,
 		}

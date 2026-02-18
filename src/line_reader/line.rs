@@ -5,23 +5,21 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::io::{Write, Stdout};
+use std::io::{Stdout, Write};
+
 use regex::Regex;
 
-use crate::line_reader::{
-	flush,
-	error::LineReaderError,
-};
+use crate::line_reader::{error::LineReaderError, flush};
 
 pub struct Line {
-	buf: String,
+	buf:      String,
 	position: usize,
 }
 
 impl Line {
 	pub fn new() -> Self {
 		Line {
-			buf: String::new(),
+			buf:      String::new(),
 			position: 0,
 		}
 	}
@@ -110,7 +108,7 @@ impl Line {
 		&self,
 		stdout: &mut Stdout,
 		prompt: &str,
-		hint: Option<&'static str>
+		hint: Option<&'static str>,
 	) -> Result<(), LineReaderError> {
 		let write_result = write!(
 			stdout,

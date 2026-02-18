@@ -6,7 +6,9 @@
  */
 
 use std::io;
-use crossterm::{execute, terminal, cursor};
+
+use crossterm::{cursor, execute, terminal};
+
 use crate::command::error::CommandError;
 
 pub enum CliCommand {
